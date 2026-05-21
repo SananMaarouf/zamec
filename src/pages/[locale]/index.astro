@@ -1,0 +1,14 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Landing from "@/components/Landing.astro";
+import { NON_DEFAULT_LOCALES, type Locale } from "@/sanity/lib/locale";
+
+export async function getStaticPaths() {
+  return NON_DEFAULT_LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = Astro.params.locale as Locale;
+---
+<Layout locale={locale} path="/">
+  <Landing locale={locale} />
+</Layout>

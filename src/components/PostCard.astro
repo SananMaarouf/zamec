@@ -1,0 +1,45 @@
+---
+import { localizedPath, type Locale } from "@/sanity/lib/locale";
+import { urlForImage } from "@/sanity/lib/url-for-image";
+
+interface Props {
+  title: string;
+  slug: string;
+  publishedAt?: string;
+  mainImage?: { asset?: any; alt?: string };
+  locale: Locale;
+}
+
+const { title, slug, publishedAt, mainImage, locale } = Astro.props;
+
+const href = localizedPath(locale, `/post/${slug}`);
+const imgUrl = mainImage?.asset
+  ? urlForImage(mainImage.asset).width(640).height(360).fit("crop").url()
+  : null;
+
+const dateLabel = publishedAt
+  ? new Date(publishedAt).toLocaleDateString(locale, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  : null;
+---
+<a href={href} class="group block rounded-lg border overflow-hidden hover:shadow-md transition-shadow">
+  {imgUrl && (
+    <img
+      src={imgUrl}
+      alt={mainImage?.alt ?? title}
+      width="640"
+      height="360"
+      class="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
+      loading="lazy"
+    />
+  )}
+  <div class="p-4">
+    <h3 class="font-semibold text-lg leading-snug group-hover:underline">{title}</h3>
+    {dateLabel && (
+      <p class="text-sm text-muted-foreground mt-1">{dateLabel}</p>
+    )}
+  </div>
+</a>

@@ -1,0 +1,32 @@
+---
+import PostCard from "@/components/PostCard.astro";
+import type { Locale } from "@/sanity/lib/locale";
+
+interface Props {
+  category: any;
+  locale: Locale;
+}
+
+const { category, locale } = Astro.props;
+---
+<section class="container mx-auto px-4 py-10">
+  <h1 class="text-3xl font-bold mb-2">{category.title}</h1>
+  {category.description && (
+    <p class="text-muted-foreground mb-8 max-w-2xl">{category.description}</p>
+  )}
+  {category.posts?.length ? (
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {category.posts.map((post: any) => (
+        <PostCard
+          title={post.title}
+          slug={post.slug}
+          publishedAt={post.publishedAt}
+          mainImage={post.mainImage}
+          locale={locale}
+        />
+      ))}
+    </div>
+  ) : (
+    <p class="text-muted-foreground">No posts in this category yet.</p>
+  )}
+</section>

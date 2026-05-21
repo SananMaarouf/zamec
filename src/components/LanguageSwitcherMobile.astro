@@ -1,0 +1,48 @@
+---
+import {
+  LOCALES,
+  DEFAULT_LOCALE,
+  resolveLocale,
+  type Locale,
+} from "@/sanity/lib/locale";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+const current = resolveLocale(Astro.currentLocale);
+
+function stripLocalePrefix(pathname: string): string {
+  for (const loc of LOCALES) {
+    if (loc === DEFAULT_LOCALE) continue;
+    if (pathname === `/${loc}` || pathname === `/${loc}/`) return "/";
+    if (pathname.startsWith(`/${loc}/`)) return pathname.slice(`/${loc}`.length);
+  }
+  return pathname;
+}
+
+const basePath = stripLocalePrefix(Astro.url.pathname);
+
+function hrefFor(loc: Locale): string {
+  if (loc === DEFAULT_LOCALE) return basePath || "/";
+  return basePath === "/" ? `/${loc}/` : `/${loc}${basePath}`;
+}
+
+const labels: Record<Locale, string> = {
+  en: "English",
+  nb: "Norsk",
+};
+---
+<div class="flex flex-col gap-2">
+  {LOCALES.map((loc) => (
+    <a
+      href={hrefFor(loc)}
+      hreflang={loc}
+      aria-current={loc === current ? "true" : undefined}
+      class={cn(
+        buttonVariants({ variant: loc === current ? "default" : "ghost" }),
+        "w-full justify-start gap-2",
+      )}
+    >
+      {labels[loc]}
+    </a>
+  ))}
+</div>

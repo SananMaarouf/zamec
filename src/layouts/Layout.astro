@@ -1,0 +1,120 @@
+---
+import "@/styles/global.css";
+import { Navbar, type MenuItem } from "@/components/react/navbar";
+import Footer from "@/components/Footer.astro";
+import SEO from "@/components/SEO.astro";
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
+import LanguageSwitcherMobile from "@/components/LanguageSwitcherMobile.astro";
+import { loadQuery } from "@/sanity/lib/load-query";
+import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
+import { resolveLocale, localizedPath, type Locale } from "@/sanity/lib/locale";
+
+interface Props {
+  locale?: Locale | string;
+  title?: string;
+  description?: string;
+  image?: { asset?: any; alt?: string };
+  /** Path *without* the locale prefix, e.g. `/post/hello`. */
+  path?: string;
+}
+
+const locale = resolveLocale(Astro.props.locale ?? Astro.currentLocale);
+const { title, description, image, path = "/" } = Astro.props;
+
+const { data: settings } = await loadQuery<any>({
+  query: SITE_SETTINGS_QUERY,
+  params: { locale },
+});
+
+const navTitle = settings?.title ?? "Astro × Sanity";
+
+// Resolve CMS-driven nav items into the shape the React Navbar wants.
+const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
+  .map((item: any): MenuItem | null => {
+    const ref = item.internalRef;
+    let url = item.href ?? "";
+    if (ref?._type && ref?.slug) {
+      const segment =
+        ref._type === "post"
+          ? `/post/${ref.slug}`
+          : ref._type === "category"
+            ? `/category/${ref.slug}`
+            : `/${ref.slug}`;
+      url = localizedPath(locale, segment);
+    } else if (url && !url.startsWith("http") && !url.startsWith("/")) {
+      url = `/${url}`;
+    }
+    if (!item.label || !url) return null;
+    return { title: item.label, url };
+  })
+  .filter(Boolean) as MenuItem[];
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <SEO
+      locale={locale}
+      title={title}
+      description={description}
+      image={image}
+      path={path}
+    />
+    <script is:inline>
+      const theme =
+        localStorage.getItem("theme") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light");
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <Navbar
+      client:load
+      logo={{
+        url: localizedPath(locale, "/"),
+        src: "/astro.svg",
+        alt: "logo",
+        title: navTitle,
+      }}
+      menu={menu}
+      linkBtn={{ title: "Posts", url: localizedPath(locale, "/posts") }}
+    >
+      <LanguageSwitcher />
+      <LanguageSwitcherMobile slot="mobileExtras" />
+    </Navbar>
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+    <script is:inline>
+      (() => {
+        const setHeight = (el) =>
+          document.documentElement.style.setProperty(
+            "--navbar-height",
+            `${el.offsetHeight}px`,
+          );
+
+        const attach = () => {
+          const navbar = document.getElementById("site-navbar");
+          if (!navbar) return false;
+          setHeight(navbar);
+          new ResizeObserver(() => setHeight(navbar)).observe(navbar);
+          return true;
+        };
+
+        if (!attach()) {
+          const mo = new MutationObserver(() => {
+            if (attach()) mo.disconnect();
+          });
+          mo.observe(document.body, { childList: true, subtree: true });
+        }
+      })();
+    </script>
+  </body>
+</html>

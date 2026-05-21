@@ -1,0 +1,33 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import CategoryPage from "@/components/CategoryPage.astro";
+import { loadQuery } from "@/sanity/lib/load-query";
+import { CATEGORY_SLUGS_QUERY, CATEGORY_BY_SLUG_QUERY } from "@/sanity/lib/queries";
+import { DEFAULT_LOCALE } from "@/sanity/lib/locale";
+
+export async function getStaticPaths() {
+  const { data } = await loadQuery<Array<{ slug: string }>>({
+    query: CATEGORY_SLUGS_QUERY,
+    params: { locale: DEFAULT_LOCALE },
+  });
+  return (data ?? []).map(({ slug }) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const locale = DEFAULT_LOCALE;
+
+const { data: category } = await loadQuery<any>({
+  query: CATEGORY_BY_SLUG_QUERY,
+  params: { slug, locale },
+});
+
+if (!category) throw new Error(`Category not found: ${slug}`);
+---
+<Layout
+  locale={locale}
+  title={category.title}
+  description={category.description}
+  path={`/category/${slug}`}
+>
+  <CategoryPage category={category} locale={locale} />
+</Layout>

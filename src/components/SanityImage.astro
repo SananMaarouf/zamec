@@ -1,0 +1,16 @@
+---
+import { urlForImage } from "@/sanity/lib/url-for-image";
+
+const { node, width = 960 } = Astro.props;
+
+let url: string | undefined;
+try {
+  if (node?.asset) {
+    url = urlForImage(node).width(width).fit("max").auto("format").url();
+  }
+} catch (error) {
+  console.error(error);
+}
+---
+
+{url && <img src={url} alt={node.alt || ""} title={node.alt} />}

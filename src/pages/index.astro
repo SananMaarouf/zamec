@@ -1,0 +1,10 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Landing from "@/components/Landing.astro";
+import { DEFAULT_LOCALE } from "@/sanity/lib/locale";
+
+const locale = DEFAULT_LOCALE;
+---
+<Layout locale={locale} path="/">
+  <Landing locale={locale} />
+</Layout>

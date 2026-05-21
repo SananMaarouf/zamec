@@ -1,0 +1,48 @@
+---
+import {
+  LOCALES,
+  DEFAULT_LOCALE,
+  resolveLocale,
+  type Locale,
+} from "@/sanity/lib/locale";
+
+const current = resolveLocale(Astro.currentLocale);
+
+// Strip a leading locale prefix from the current path so we can re-prefix it.
+function stripLocalePrefix(pathname: string): string {
+  for (const loc of LOCALES) {
+    if (loc === DEFAULT_LOCALE) continue;
+    if (pathname === `/${loc}` || pathname === `/${loc}/`) return "/";
+    if (pathname.startsWith(`/${loc}/`)) return pathname.slice(`/${loc}`.length);
+  }
+  return pathname;
+}
+
+const basePath = stripLocalePrefix(Astro.url.pathname);
+
+function hrefFor(loc: Locale): string {
+  if (loc === DEFAULT_LOCALE) return basePath || "/";
+  return basePath === "/" ? `/${loc}/` : `/${loc}${basePath}`;
+}
+
+const labels: Record<Locale, string> = {
+  en: "EN",
+  nb: "NB",
+};
+---
+<nav aria-label="Language" class="flex items-center gap-2 text-sm">
+  {LOCALES.map((loc) => (
+    <a
+      href={hrefFor(loc)}
+      hreflang={loc}
+      aria-current={loc === current ? "true" : undefined}
+      class={`px-2 py-1 rounded transition-colors ${
+        loc === current
+          ? "bg-muted font-semibold"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {labels[loc]}
+    </a>
+  ))}
+</nav>

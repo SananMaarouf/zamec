@@ -1,0 +1,16 @@
+---
+import {PortableText as PortableTextInternal} from 'astro-portabletext'
+import SanityImage from './SanityImage.astro'
+import InternalLink from './InternalLink.astro'
+
+const components = {
+  type: {
+    image: SanityImage,
+  },
+  mark: {
+    internalLink: InternalLink,
+  },
+}
+---
+
+<PortableTextInternal value={Astro.props.value} components={components} />

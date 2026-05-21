@@ -1,0 +1,98 @@
+---
+import { loadQuery } from "@/sanity/lib/load-query";
+import { LANDING_QUERY } from "@/sanity/lib/queries";
+import { urlForImage } from "@/sanity/lib/url-for-image";
+import { resolveLocale } from "@/sanity/lib/locale";
+
+interface Props {
+  locale?: string;
+}
+
+const locale = resolveLocale(Astro.props.locale ?? Astro.currentLocale);
+
+const { data: landing } = await loadQuery<any>({
+  query: LANDING_QUERY,
+  params: { locale },
+});
+
+const bgUrl = landing?.image?.asset
+  ? urlForImage(landing.image.asset).url()
+  : "";
+const landingImage = landing?.landingImage?.asset
+  ? urlForImage(landing.landingImage.asset).url()
+  : "";
+---
+
+{
+  landing && (
+    <div
+      class="
+  relative h-[calc(100svh-var(--navbar-height,4.5rem))] 
+  w-full overflow-hidden"
+      style={
+        bgUrl
+          ? `background-image: url('${bgUrl}'); background-size: cover; background-position: center;`
+          : ""
+      }
+    >
+      {/* semi-transparent overlay for text readability */}
+      <div class="absolute inset-0 bg-black/40" />
+
+      {/* main content */}
+      <section class="relative flex h-full grow items-center justify-center z-10">
+        <div class="flex flex-col w-4/5 lg:w-3/5 lg:flex-row">
+          <div class="flex flex-col lg:w-full">
+            {/* text content */}
+            <div class="flex flex-col lg:mt-20 items-center gap-12 p-2">
+              <h1 class="text-3xl lg:text-4xl font-extrabold mb-4 text-white drop-shadow">
+                {landing.title}
+              </h1>
+              {landing.landingImage && (
+                <img
+                  src={landingImage}
+                  alt={landing.landingImage.alt}
+                  class="lg:hidden w-full max-w-lg h-full object-cover"
+                />
+              )}
+              {landing.ctaText && (
+                <p class="text-2xl text-white drop-shadow mb-6">
+                  {landing.ctaText}
+                </p>
+              )}
+              {landing.ctaBtnText && (
+                <button
+                  class="
+            inline-block md:hidden px-6 py-3
+            rounded-lg text-lg bg-primary text-primary-foreground font-semibold
+            shadow-lg
+          "
+                >
+                  {landing.ctaBtnText}
+                </button>
+              )}
+            </div>
+            {landing.ctaBtnText && (
+              <button
+                class="
+            hidden md:inline-block py-3 mt-2 lg:mt-20 mx-auto w-fit px-8
+            rounded-lg text-xl bg-primary text-primary-foreground font-semibold
+            shadow-lg
+          "
+              >
+                {landing.ctaBtnText}
+              </button>
+            )}
+          </div>
+          {/* image content */}
+          {landing.landingImage && (
+            <img
+              src={landingImage}
+              alt={landing.landingImage.alt}
+              class="hidden lg:inline-block self-center w-full h-full max-w-2xl lg:max-w-lg xl:max-w-4xl object-cover"
+            />
+          )}
+        </div>
+      </section>
+    </div>
+  )
+}

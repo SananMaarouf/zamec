@@ -1,0 +1,41 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import PortableText from "@/components/PortableText.astro";
+import { loadQuery } from "@/sanity/lib/load-query";
+import { PAGE_SLUGS_QUERY, PAGE_BY_SLUG_QUERY } from "@/sanity/lib/queries";
+import { NON_DEFAULT_LOCALES, type Locale } from "@/sanity/lib/locale";
+
+export async function getStaticPaths() {
+  const out: Array<{ params: { locale: Locale; page: string } }> = [];
+  for (const locale of NON_DEFAULT_LOCALES) {
+    const { data } = await loadQuery<Array<{ slug: string }>>({
+      query: PAGE_SLUGS_QUERY,
+      params: { locale },
+    });
+    for (const { slug } of data ?? []) out.push({ params: { locale, page: slug } });
+  }
+  return out;
+}
+
+const locale = Astro.params.locale as Locale;
+const slug = Astro.params.page as string;
+
+const { data: page } = await loadQuery<any>({
+  query: PAGE_BY_SLUG_QUERY,
+  params: { slug, locale },
+});
+
+if (!page) throw new Error(`Page not found: ${locale}/${slug}`);
+---
+<Layout
+  locale={locale}
+  title={page.title}
+  description={page.seoDescription}
+  image={page.ogImage}
+  path={`/${slug}`}
+>
+  <article class="container mx-auto px-4 py-10 max-w-3xl prose dark:prose-invert">
+    <h1>{page.title}</h1>
+    {page.body && <PortableText value={page.body} />}
+  </article>
+</Layout>

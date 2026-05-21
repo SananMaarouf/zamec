@@ -1,0 +1,52 @@
+---
+import { localizedPath, type Locale } from "@/sanity/lib/locale";
+import PortableText from "@/components/PortableText.astro";
+import SanityImage from "@/components/SanityImage.astro";
+
+interface Props {
+  post: any;
+  locale: Locale;
+}
+
+const { post, locale } = Astro.props;
+
+const dateLabel = post?.publishedAt
+  ? new Date(post.publishedAt).toLocaleDateString(locale, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  : null;
+---
+<article class="container mx-auto px-4 py-10 max-w-3xl prose dark:prose-invert">
+  <h1>{post.title}</h1>
+  {(post.author || dateLabel) && (
+    <p class="text-muted-foreground text-sm not-prose mb-6">
+      {post.author?.name && (
+        <a class="hover:underline" href={localizedPath(locale, `/author/${post.author.slug}`)}>
+          {post.author.name}
+        </a>
+      )}
+      {post.author?.name && dateLabel && " · "}
+      {dateLabel}
+    </p>
+  )}
+  {post.mainImage && (
+    <SanityImage node={post.mainImage} width={960} />
+  )}
+  {post.body && <PortableText value={post.body} />}
+  {post.categories?.length > 0 && (
+    <ul class="not-prose flex flex-wrap gap-2 mt-8">
+      {post.categories.map((c: any) => (
+        <li>
+          <a
+            href={localizedPath(locale, `/category/${c.slug}`)}
+            class="text-xs px-2 py-1 rounded bg-muted hover:bg-muted/70"
+          >
+            {c.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</article>

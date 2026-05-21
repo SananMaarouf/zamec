@@ -1,0 +1,34 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import PostPage from "@/components/PostPage.astro";
+import { loadQuery } from "@/sanity/lib/load-query";
+import { POST_SLUGS_QUERY, POST_BY_SLUG_QUERY } from "@/sanity/lib/queries";
+import { DEFAULT_LOCALE } from "@/sanity/lib/locale";
+
+export async function getStaticPaths() {
+  const { data } = await loadQuery<Array<{ slug: string }>>({
+    query: POST_SLUGS_QUERY,
+    params: { locale: DEFAULT_LOCALE },
+  });
+  return (data ?? []).map(({ slug }) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const locale = DEFAULT_LOCALE;
+
+const { data: post } = await loadQuery<any>({
+  query: POST_BY_SLUG_QUERY,
+  params: { slug, locale },
+});
+
+if (!post) throw new Error(`Post not found: ${slug}`);
+---
+<Layout
+  locale={locale}
+  title={post.title}
+  description={post.body?.[0]?.children?.[0]?.text}
+  image={post.mainImage}
+  path={`/post/${slug}`}
+>
+  <PostPage post={post} locale={locale} />
+</Layout>

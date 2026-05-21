@@ -1,0 +1,46 @@
+---
+import PostCard from "@/components/PostCard.astro";
+import PortableText from "@/components/PortableText.astro";
+import SanityImage from "@/components/SanityImage.astro";
+import type { Locale } from "@/sanity/lib/locale";
+
+interface Props {
+  author: any;
+  locale: Locale;
+}
+
+const { author, locale } = Astro.props;
+---
+<section class="container mx-auto px-4 py-10">
+  <header class="flex items-start gap-6 mb-10">
+    {author.image?.asset && (
+      <div class="w-32 h-32 rounded-full overflow-hidden shrink-0">
+        <SanityImage node={author.image} width={256} />
+      </div>
+    )}
+    <div>
+      <h1 class="text-3xl font-bold mb-2">{author.name}</h1>
+      {author.bio && (
+        <div class="prose dark:prose-invert max-w-2xl">
+          <PortableText value={author.bio} />
+        </div>
+      )}
+    </div>
+  </header>
+
+  {author.posts?.length ? (
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {author.posts.map((post: any) => (
+        <PostCard
+          title={post.title}
+          slug={post.slug}
+          publishedAt={post.publishedAt}
+          mainImage={post.mainImage}
+          locale={locale}
+        />
+      ))}
+    </div>
+  ) : (
+    <p class="text-muted-foreground">No posts by this author yet.</p>
+  )}
+</section>

@@ -1,3 +1,0 @@
-# As soon as you are ready to go public, change the `Disallow: /` to `Allow: /`
-User-agent: *
-Disallow: /
