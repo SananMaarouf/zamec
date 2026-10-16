@@ -1,6 +1,6 @@
 # Astro × Sanity × i18n Starter
 
-A template for multilingual static websites using **Astro 6**, **Sanity 5**, and
+A template for multilingual static websites using **Astro 7**, **Sanity 6**, and
 **TypeScript**.
 
 This README is written to be useful both for:
