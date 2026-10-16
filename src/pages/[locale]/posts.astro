@@ -26,6 +26,7 @@ const { data: posts } = await loadQuery<any[]>({
             slug={post.slug}
             publishedAt={post.publishedAt}
             mainImage={post.mainImage}
+            images={post.images}
             locale={locale}
           />
         ))}

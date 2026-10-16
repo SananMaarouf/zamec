@@ -4,7 +4,6 @@ import { authorType } from "./author";
 import { blockContentType } from "./blockContent";
 import { categoryType } from "./category";
 import { footerType } from "./footer";
-import { landingType } from "./landing";
 import { navigationType } from "./navigation";
 import { pageType } from "./page";
 import { postType } from "./post";
@@ -17,7 +16,6 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     blockContentType,
     categoryType,
     footerType,
-    landingType,
     navigationType,
     pageType,
     postType,

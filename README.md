@@ -1,6 +1,6 @@
 # Astro × Sanity × i18n Starter
 
-A template for multilingual static websites using **Astro 7**, **Sanity 6**, and
+A template for multilingual static websites using **Astro 6**, **Sanity 5**, and
 **TypeScript**.
 
 This README is written to be useful both for:
@@ -36,7 +36,7 @@ Studio opens at <http://localhost:3333> (or use the hosted Sanity Studio at mana
 - Locale-aware routing (`en` default, `nb` secondary)
 - Localized Sanity fields via `sanity-plugin-internationalized-array`
 - Centralized, typed GROQ queries in `src/sanity/lib/queries.ts`
-- Prebuilt schemas: `siteSettings`, `navigation`, `footer`, `landing`, `page`,
+- Prebuilt schemas: `siteSettings`, `navigation`, `footer`, `page`,
   `post`, `category`, `author`, `theme`, and `blockContent`
 - CMS-driven color palette: clients edit the light/dark theme tokens in the
   Studio instead of touching `src/styles/global.css` (see
@@ -147,7 +147,6 @@ Studio opens at <http://localhost:3333>. The layout expects singleton content �
 | `Site Settings` | Global title + nav reference + SEO defaults | `title` (`en`, `nb`), `primaryNav` reference |
 | `Navigation` | Main menu rendering | `title`, at least 1 `items[]` row with `label` + (`href` or `internalRef`) |
 | `Footer` | Footer text/contact section | `address` (`en`, `nb`) and/or `copyright` |
-| `Landing` | Homepage hero content | `title` (`en`, `nb`) and `ctaBtnText` (`en`, `nb`) |
 | `Theme` | Site color palette (light + dark) and the two Google Fonts | nothing — every color and font starts at the template default |
 
 Optional but recommended:
@@ -413,7 +412,7 @@ Before production deploy:
 | Studio shows unexpected project content | `sanity.config.ts` projectId/dataset mismatch | Align `sanity.config.ts` with `.env` values |
 | `sanity:codegen` fails or types are stale | Schema extraction/typegen not rerun | `npm run sanity:codegen` |
 | Some content appears in `en` but not `nb` | Missing translation values in localized fields | Add missing locale values in Studio |
-| Build succeeds but page content is empty | Required singleton docs not created | Create `Site Settings`, `Navigation`, `Footer`, `Landing` |
+| Build succeeds but page content is empty | Required singleton docs not created | Create `Site Settings`, `Navigation`, `Footer` |
 | A font picked in the Studio does not show up on the site | Static output — fonts are read at build time | Rebuild/redeploy (`npm run build`); in `astro dev` a refresh is enough |
 | Site renders in a fallback typeface, no error anywhere | The Google Fonts URL 400s, e.g. a weight the family does not ship | Check the `<link>` href from the page source with `curl -sI`; fix `query` in `src/lib/google-fonts.ts` (see [Fonts](#fonts-google-fonts)) |
 | Studio warns “is not in the font catalog” | The stored value is not in `GOOGLE_FONTS` (e.g. family removed) | Pick a font again, or re-add the family to `src/lib/google-fonts.ts` |

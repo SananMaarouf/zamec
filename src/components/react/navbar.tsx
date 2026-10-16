@@ -47,6 +47,11 @@ interface NavbarProps {
   mobileExtras?: ReactNode;
 }
 
+// Shared by every plain nav entry — including the trailing `linkBtn` — so the
+// last link reads as one of the menu links instead of a primary-colored CTA.
+const navLinkClassName =
+  "bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors";
+
 const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProps) => {
   return (
     <section
@@ -81,9 +86,9 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
             {children && <div className="flex items-center">{children}</div>}
             <ThemeSwitcher />
             {linkBtn && (
-              <Button asChild size="sm">
-                <a href={linkBtn.url}>{linkBtn.title}</a>
-              </Button>
+              <a href={linkBtn.url} className={navLinkClassName}>
+                {linkBtn.title}
+              </a>
             )}
           </div>
         </nav>
@@ -132,9 +137,9 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
 
                   <div className="flex flex-col gap-3">
                     {linkBtn && (
-                      <Button asChild>
-                        <a href={linkBtn.url}>{linkBtn.title}</a>
-                      </Button>
+                      <a href={linkBtn.url} className="text-md font-semibold">
+                        {linkBtn.title}
+                      </a>
                     )}
                     {mobileExtras && (
                       <Accordion type="single" collapsible className="w-full">
@@ -178,10 +183,7 @@ const renderMenuItem = (item: MenuItem) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        href={item.url}
-        className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-      >
+      <NavigationMenuLink href={item.url} className={navLinkClassName}>
         {item.title}
       </NavigationMenuLink>
     </NavigationMenuItem>

@@ -330,6 +330,15 @@ export type Post = {
     alt?: string;
     _type: "image";
   };
+  images?: Array<{
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+    _key: string;
+  }>;
   categories?: Array<
     {
       _key: string;
@@ -337,33 +346,6 @@ export type Post = {
   >;
   publishedAt?: string;
   body?: InternationalizedArrayBlockContent;
-};
-
-export type Landing = {
-  _id: string;
-  _type: "landing";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  landingImage?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  };
-  image?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  };
-  ctaText?: InternationalizedArrayString;
-  ctaBtnText?: InternationalizedArrayString;
 };
 
 export type Footer = {
@@ -574,7 +556,6 @@ export type AllSanitySchemaTypes =
   | Slug
   | AuthorReference
   | Post
-  | Landing
   | Footer
   | Category
   | BlockContent
@@ -600,7 +581,7 @@ export type POST_SLUGS_QUERY_RESULT = Array<{
 
 // Source: src/sanity/lib/queries.ts
 // Variable: POST_BY_SLUG_QUERY
-// Query: *[_type == "post" && slug.current == $slug][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "body":        coalesce(body[language == $locale][0].value,  body[0].value),    publishedAt,    mainImage{ asset, alt },    "author": author->{      name,      "slug": slug.current,      image    },    "categories": categories[]->{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    }  }
+// Query: *[_type == "post" && slug.current == $slug][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "body":        coalesce(body[language == $locale][0].value,  body[0].value),    publishedAt,    mainImage{ asset, alt },    images[]{ asset, alt },    "categories": categories[]->{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    },    // Neighbours in the listing order used by the index and the category/author    // pages (publishedAt desc, _id asc), so walking the links walks the site's    // own sequence: "previous" is the entry before this post (newer), "next"    // the one after it (older). The _id comparisons break ties for posts that    // share one timestamp — without them whole groups of same-day posts would    // have no neighbours at all.    "previousPost": *[      _type == "post"      && count(title[language == $locale && value != null]) > 0      && defined(publishedAt)      && defined(^.publishedAt)      && (publishedAt > ^.publishedAt          || (publishedAt == ^.publishedAt && _id < ^._id))    ] | order(publishedAt asc, _id desc)[0]{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    },    "nextPost": *[      _type == "post"      && count(title[language == $locale && value != null]) > 0      && defined(publishedAt)      && defined(^.publishedAt)      && (publishedAt < ^.publishedAt          || (publishedAt == ^.publishedAt && _id > ^._id))    ] | order(publishedAt desc, _id asc)[0]{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    }  }
 export type POST_BY_SLUG_QUERY_RESULT = {
   title: string | null;
   body: BlockContent | null;
@@ -609,27 +590,27 @@ export type POST_BY_SLUG_QUERY_RESULT = {
     asset: SanityImageAssetReference | null;
     alt: string | null;
   } | null;
-  author: {
-    name: string | null;
-    slug: string | null;
-    image: {
-      asset?: SanityImageAssetReference;
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      alt?: string;
-      _type: "image";
-    } | null;
-  } | null;
+  images: Array<{
+    asset: SanityImageAssetReference | null;
+    alt: string | null;
+  }> | null;
   categories: Array<{
     title: string | null;
     slug: string | null;
   }> | null;
+  previousPost: {
+    title: string | null;
+    slug: string | null;
+  } | null;
+  nextPost: {
+    title: string | null;
+    slug: string | null;
+  } | null;
 } | null;
 
 // Source: src/sanity/lib/queries.ts
 // Variable: POSTS_INDEX_QUERY
-// Query: *[_type == "post" && count(title[language == $locale && value != null]) > 0]    | order(publishedAt desc){    "title":     coalesce(title[language == $locale][0].value, title[0].value),    "slug":      slug.current,    publishedAt,    mainImage{ asset, alt }  }
+// Query: *[_type == "post" && count(title[language == $locale && value != null]) > 0]    | order(publishedAt desc, _id asc){    "title":     coalesce(title[language == $locale][0].value, title[0].value),    "slug":      slug.current,    publishedAt,    mainImage{ asset, alt },    images[]{ asset, alt }  }
 export type POSTS_INDEX_QUERY_RESULT = Array<{
   title: string | null;
   slug: string | null;
@@ -638,6 +619,10 @@ export type POSTS_INDEX_QUERY_RESULT = Array<{
     asset: SanityImageAssetReference | null;
     alt: string | null;
   } | null;
+  images: Array<{
+    asset: SanityImageAssetReference | null;
+    alt: string | null;
+  }> | null;
 }>;
 
 // Source: src/sanity/lib/queries.ts
@@ -649,7 +634,7 @@ export type CATEGORY_SLUGS_QUERY_RESULT = Array<{
 
 // Source: src/sanity/lib/queries.ts
 // Variable: CATEGORY_BY_SLUG_QUERY
-// Query: *[_type == "category" && slug.current == $slug][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "description": coalesce(description[language == $locale][0].value, description[0].value),    "slug":        slug.current,    "posts": *[_type == "post" && references(^._id)      && count(title[language == $locale && value != null]) > 0]      | order(publishedAt desc){      "title":     coalesce(title[language == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt }    }  }
+// Query: *[_type == "category" && slug.current == $slug][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "description": coalesce(description[language == $locale][0].value, description[0].value),    "slug":        slug.current,    "posts": *[_type == "post" && references(^._id)      && count(title[language == $locale && value != null]) > 0]      | order(publishedAt desc, _id asc){      "title":     coalesce(title[language == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt },      images[]{ asset, alt }    }  }
 export type CATEGORY_BY_SLUG_QUERY_RESULT = {
   title: string | null;
   description: string | null;
@@ -662,6 +647,10 @@ export type CATEGORY_BY_SLUG_QUERY_RESULT = {
       asset: SanityImageAssetReference | null;
       alt: string | null;
     } | null;
+    images: Array<{
+      asset: SanityImageAssetReference | null;
+      alt: string | null;
+    }> | null;
   }>;
 } | null;
 
@@ -674,7 +663,7 @@ export type AUTHOR_SLUGS_QUERY_RESULT = Array<{
 
 // Source: src/sanity/lib/queries.ts
 // Variable: AUTHOR_BY_SLUG_QUERY
-// Query: *[_type == "author" && slug.current == $slug][0]{    name,    "slug": slug.current,    image,    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),    "posts": *[_type == "post" && references(^._id)      && count(title[language == $locale && value != null]) > 0]      | order(publishedAt desc){      "title":     coalesce(title[language == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt }    }  }
+// Query: *[_type == "author" && slug.current == $slug][0]{    name,    "slug": slug.current,    image,    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),    "posts": *[_type == "post" && references(^._id)      && count(title[language == $locale && value != null]) > 0]      | order(publishedAt desc, _id asc){      "title":     coalesce(title[language == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt },      images[]{ asset, alt }    }  }
 export type AUTHOR_BY_SLUG_QUERY_RESULT = {
   name: string | null;
   slug: string | null;
@@ -695,6 +684,10 @@ export type AUTHOR_BY_SLUG_QUERY_RESULT = {
       asset: SanityImageAssetReference | null;
       alt: string | null;
     } | null;
+    images: Array<{
+      asset: SanityImageAssetReference | null;
+      alt: string | null;
+    }> | null;
   }>;
 } | null;
 
@@ -772,23 +765,6 @@ export type FOOTER_QUERY_RESULT = {
 } | null;
 
 // Source: src/sanity/lib/queries.ts
-// Variable: LANDING_QUERY
-// Query: *[_type == "landing"][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    landingImage{ asset, alt },    image{ asset, alt },    "ctaText":    coalesce(ctaText[language == $locale][0].value, ctaText[0].value),    "ctaBtnText": coalesce(ctaBtnText[language == $locale][0].value, ctaBtnText[0].value)  }
-export type LANDING_QUERY_RESULT = {
-  title: string | null;
-  landingImage: {
-    asset: SanityImageAssetReference | null;
-    alt: string | null;
-  } | null;
-  image: {
-    asset: SanityImageAssetReference | null;
-    alt: string | null;
-  } | null;
-  ctaText: string | null;
-  ctaBtnText: string | null;
-} | null;
-
-// Source: src/sanity/lib/queries.ts
 // Variable: THEME_QUERY
 // Query: *[_type == "theme"][0]{    radius,    light,    dark,    fonts  }
 export type THEME_QUERY_RESULT = {
@@ -802,17 +778,16 @@ export type THEME_QUERY_RESULT = {
 declare global {
   interface SanityQueries {
     '\n  *[_type == "post" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': POST_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "post" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "body":        coalesce(body[language == $locale][0].value,  body[0].value),\n    publishedAt,\n    mainImage{ asset, alt },\n    "author": author->{\n      name,\n      "slug": slug.current,\n      image\n    },\n    "categories": categories[]->{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    }\n  }\n': POST_BY_SLUG_QUERY_RESULT;
-    '\n  *[_type == "post" && count(title[language == $locale && value != null]) > 0]\n    | order(publishedAt desc){\n    "title":     coalesce(title[language == $locale][0].value, title[0].value),\n    "slug":      slug.current,\n    publishedAt,\n    mainImage{ asset, alt }\n  }\n': POSTS_INDEX_QUERY_RESULT;
+    '\n  *[_type == "post" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "body":        coalesce(body[language == $locale][0].value,  body[0].value),\n    publishedAt,\n    mainImage{ asset, alt },\n    images[]{ asset, alt },\n    "categories": categories[]->{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    },\n    // Neighbours in the listing order used by the index and the category/author\n    // pages (publishedAt desc, _id asc), so walking the links walks the site\'s\n    // own sequence: "previous" is the entry before this post (newer), "next"\n    // the one after it (older). The _id comparisons break ties for posts that\n    // share one timestamp \u2014 without them whole groups of same-day posts would\n    // have no neighbours at all.\n    "previousPost": *[\n      _type == "post"\n      && count(title[language == $locale && value != null]) > 0\n      && defined(publishedAt)\n      && defined(^.publishedAt)\n      && (publishedAt > ^.publishedAt\n          || (publishedAt == ^.publishedAt && _id < ^._id))\n    ] | order(publishedAt asc, _id desc)[0]{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    },\n    "nextPost": *[\n      _type == "post"\n      && count(title[language == $locale && value != null]) > 0\n      && defined(publishedAt)\n      && defined(^.publishedAt)\n      && (publishedAt < ^.publishedAt\n          || (publishedAt == ^.publishedAt && _id > ^._id))\n    ] | order(publishedAt desc, _id asc)[0]{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    }\n  }\n': POST_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "post" && count(title[language == $locale && value != null]) > 0]\n    | order(publishedAt desc, _id asc){\n    "title":     coalesce(title[language == $locale][0].value, title[0].value),\n    "slug":      slug.current,\n    publishedAt,\n    mainImage{ asset, alt },\n    images[]{ asset, alt }\n  }\n': POSTS_INDEX_QUERY_RESULT;
     '\n  *[_type == "category" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': CATEGORY_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "category" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    "slug":        slug.current,\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt }\n    }\n  }\n': CATEGORY_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "category" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    "slug":        slug.current,\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc, _id asc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt },\n      images[]{ asset, alt }\n    }\n  }\n': CATEGORY_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "author" && defined(slug.current)]{ "slug": slug.current }\n': AUTHOR_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "author" && slug.current == $slug][0]{\n    name,\n    "slug": slug.current,\n    image,\n    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt }\n    }\n  }\n': AUTHOR_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "author" && slug.current == $slug][0]{\n    name,\n    "slug": slug.current,\n    image,\n    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc, _id asc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt },\n      images[]{ asset, alt }\n    }\n  }\n': AUTHOR_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "page" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': PAGE_SLUGS_QUERY_RESULT;
     '\n  *[_type == "page" && slug.current == $slug][0]{\n    "title":          coalesce(title[language == $locale][0].value, title[0].value),\n    "body":           coalesce(body[language == $locale][0].value, body[0].value),\n    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),\n    "slug":           slug.current,\n    ogImage\n  }\n': PAGE_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    siteUrl,\n    ogImage,\n    "primaryNav": primaryNav->{\n      items[]{\n        "label": coalesce(label[language == $locale][0].value, label[0].value),\n        href,\n        "internalRef": internalRef->{ _type, "slug": slug.current }\n      }\n    }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
     '\n  *[_type == "footer"][0]{\n    instagramURL,\n    cellNumber,\n    email,\n    "address":   coalesce(address[language == $locale][0].value, address[0].value),\n    "copyright": coalesce(copyright[language == $locale][0].value, copyright[0].value)\n  }\n': FOOTER_QUERY_RESULT;
-    '\n  *[_type == "landing"][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    landingImage{ asset, alt },\n    image{ asset, alt },\n    "ctaText":    coalesce(ctaText[language == $locale][0].value, ctaText[0].value),\n    "ctaBtnText": coalesce(ctaBtnText[language == $locale][0].value, ctaBtnText[0].value)\n  }\n': LANDING_QUERY_RESULT;
     '\n  *[_type == "theme"][0]{\n    radius,\n    light,\n    dark,\n    fonts\n  }\n': THEME_QUERY_RESULT;
   }
 }

@@ -1,0 +1,60 @@
+---
+import { localizedPath, type Locale } from "@/sanity/lib/locale";
+import { urlForImage } from "@/sanity/lib/url-for-image";
+
+interface Props {
+  posts: Array<{
+    title?: string;
+    slug?: string;
+    mainImage?: { asset?: any; alt?: string };
+    images?: Array<{ asset?: any; alt?: string }>;
+  }>;
+  locale: Locale;
+}
+
+const { posts = [], locale } = Astro.props;
+
+// Image-only gallery: one square thumbnail per post, linking to the post.
+// The post's cover image is used, falling back to its first gallery image so
+// posts that only use the gallery still show up.
+const items = posts
+  .map((post) => {
+    const image = post.mainImage?.asset ? post.mainImage : post.images?.[0];
+    if (!post.slug || !image?.asset) return null;
+    return {
+      href: localizedPath(locale, `/post/${post.slug}`),
+      alt: image.alt ?? post.title ?? "",
+      src: urlForImage(image.asset)
+        .width(800)
+        .height(800)
+        .fit("crop")
+        .auto("format")
+        .url(),
+    };
+  })
+  .filter(Boolean) as Array<{ href: string; alt: string; src: string }>;
+---
+
+{
+  items.length ? (
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((item) => (
+        <a
+          href={item.href}
+          class="group block overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <img
+            src={item.src}
+            alt={item.alt}
+            width="800"
+            height="800"
+            loading="lazy"
+            class="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+        </a>
+      ))}
+    </div>
+  ) : (
+    <p class="text-muted-foreground">No posts yet.</p>
+  )
+}

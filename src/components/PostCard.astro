@@ -7,14 +7,17 @@ interface Props {
   slug: string;
   publishedAt?: string;
   mainImage?: { asset?: any; alt?: string };
+  /** Gallery images; the first one is used when there is no cover image. */
+  images?: Array<{ asset?: any; alt?: string }>;
   locale: Locale;
 }
 
-const { title, slug, publishedAt, mainImage, locale } = Astro.props;
+const { title, slug, publishedAt, mainImage, images, locale } = Astro.props;
 
 const href = localizedPath(locale, `/post/${slug}`);
-const imgUrl = mainImage?.asset
-  ? urlForImage(mainImage.asset).width(640).height(360).fit("crop").url()
+const image = mainImage?.asset ? mainImage : images?.[0];
+const imgUrl = image?.asset
+  ? urlForImage(image.asset).width(640).height(360).fit("crop").url()
   : null;
 
 const dateLabel = publishedAt
@@ -32,7 +35,7 @@ const dateLabel = publishedAt
   {imgUrl && (
     <img
       src={imgUrl}
-      alt={mainImage?.alt ?? title}
+      alt={image?.alt ?? title}
       width="640"
       height="360"
       class="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-[1.03]"
