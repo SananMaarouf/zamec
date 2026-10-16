@@ -15,6 +15,166 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type ThemeFonts = {
+  _type: "themeFonts";
+  heading?:
+    | "system"
+    | "Assistant"
+    | "DM Sans"
+    | "Figtree"
+    | "Geist"
+    | "Instrument Sans"
+    | "Inter"
+    | "Karla"
+    | "Lato"
+    | "Manrope"
+    | "Montserrat"
+    | "Nunito"
+    | "Open Sans"
+    | "Outfit"
+    | "Plus Jakarta Sans"
+    | "Poppins"
+    | "Rubik"
+    | "Source Sans 3"
+    | "Space Grotesk"
+    | "Ubuntu"
+    | "Work Sans"
+    | "Cormorant Garamond"
+    | "Crimson Pro"
+    | "DM Serif Display"
+    | "EB Garamond"
+    | "Fraunces"
+    | "Instrument Serif"
+    | "Libre Baskerville"
+    | "Lora"
+    | "Merriweather"
+    | "Newsreader"
+    | "Playfair Display"
+    | "Roboto Slab"
+    | "Source Serif 4"
+    | "Spectral"
+    | "Anton"
+    | "Archivo Black"
+    | "Bebas Neue"
+    | "Bricolage Grotesque"
+    | "Oswald"
+    | "Fira Code"
+    | "IBM Plex Mono"
+    | "JetBrains Mono"
+    | "Roboto Mono"
+    | "Source Code Pro"
+    | "Space Mono"
+    | "Caveat"
+    | "Dancing Script"
+    | "Great Vibes"
+    | "Pacifico";
+  body?:
+    | "system"
+    | "Assistant"
+    | "DM Sans"
+    | "Figtree"
+    | "Geist"
+    | "Instrument Sans"
+    | "Inter"
+    | "Karla"
+    | "Lato"
+    | "Manrope"
+    | "Montserrat"
+    | "Nunito"
+    | "Open Sans"
+    | "Outfit"
+    | "Plus Jakarta Sans"
+    | "Poppins"
+    | "Rubik"
+    | "Source Sans 3"
+    | "Space Grotesk"
+    | "Ubuntu"
+    | "Work Sans"
+    | "Cormorant Garamond"
+    | "Crimson Pro"
+    | "DM Serif Display"
+    | "EB Garamond"
+    | "Fraunces"
+    | "Instrument Serif"
+    | "Libre Baskerville"
+    | "Lora"
+    | "Merriweather"
+    | "Newsreader"
+    | "Playfair Display"
+    | "Roboto Slab"
+    | "Source Serif 4"
+    | "Spectral"
+    | "Anton"
+    | "Archivo Black"
+    | "Bebas Neue"
+    | "Bricolage Grotesque"
+    | "Oswald"
+    | "Fira Code"
+    | "IBM Plex Mono"
+    | "JetBrains Mono"
+    | "Roboto Mono"
+    | "Source Code Pro"
+    | "Space Mono"
+    | "Caveat"
+    | "Dancing Script"
+    | "Great Vibes"
+    | "Pacifico";
+};
+
+export type ThemePalette = {
+  _type: "themePalette";
+  background?: string;
+  foreground?: string;
+  card?: string;
+  cardForeground?: string;
+  popover?: string;
+  popoverForeground?: string;
+  primary?: string;
+  primaryForeground?: string;
+  secondary?: string;
+  secondaryForeground?: string;
+  accent?: string;
+  accentForeground?: string;
+  muted?: string;
+  mutedForeground?: string;
+  border?: string;
+  input?: string;
+  ring?: string;
+  destructive?: string;
+  destructiveForeground?: string;
+  chart1?: string;
+  chart2?: string;
+  chart3?: string;
+  chart4?: string;
+  chart5?: string;
+  sidebar?: string;
+  sidebarForeground?: string;
+  sidebarPrimary?: string;
+  sidebarPrimaryForeground?: string;
+  sidebarAccent?: string;
+  sidebarAccentForeground?: string;
+  sidebarBorder?: string;
+  sidebarRing?: string;
+  muted2?: string;
+  muted2Foreground?: string;
+  gradient1?: string;
+  gradient2?: string;
+  gradient3?: string;
+};
+
+export type Theme = {
+  _id: string;
+  _type: "theme";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  light?: ThemePalette;
+  dark?: ThemePalette;
+  fonts?: ThemeFonts;
+  radius?: "0" | "0.25rem" | "0.5rem" | "0.75rem" | "1rem";
+};
+
 export type SanityImageAssetReference = {
   _ref: string;
   _type: "reference";
@@ -282,16 +442,19 @@ export type Author = {
 export type InternationalizedArrayBlockContentValue = {
   _type: "internationalizedArrayBlockContentValue";
   value?: BlockContent;
+  language?: string;
 };
 
 export type InternationalizedArrayTextValue = {
   _type: "internationalizedArrayTextValue";
   value?: string;
+  language?: string;
 };
 
 export type InternationalizedArrayStringValue = {
   _type: "internationalizedArrayStringValue";
   value?: string;
+  language?: string;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -392,6 +555,9 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | ThemeFonts
+  | ThemePalette
+  | Theme
   | SanityImageAssetReference
   | NavigationReference
   | SiteSettings
@@ -427,14 +593,14 @@ export type AllSanitySchemaTypes =
 
 // Source: src/sanity/lib/queries.ts
 // Variable: POST_SLUGS_QUERY
-// Query: *[_type == "post" && count(title[_key == $locale && value != null]) > 0]{    "slug": slug.current  }
+// Query: *[_type == "post" && count(title[language == $locale && value != null]) > 0]{    "slug": slug.current  }
 export type POST_SLUGS_QUERY_RESULT = Array<{
   slug: string | null;
 }>;
 
 // Source: src/sanity/lib/queries.ts
 // Variable: POST_BY_SLUG_QUERY
-// Query: *[_type == "post" && slug.current == $slug][0]{    "title":       coalesce(title[_key == $locale][0].value, title[0].value),    "body":        coalesce(body[_key == $locale][0].value,  body[0].value),    publishedAt,    mainImage{ asset, alt },    "author": author->{      name,      "slug": slug.current,      image    },    "categories": categories[]->{      "title": coalesce(title[_key == $locale][0].value, title[0].value),      "slug":  slug.current    }  }
+// Query: *[_type == "post" && slug.current == $slug][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "body":        coalesce(body[language == $locale][0].value,  body[0].value),    publishedAt,    mainImage{ asset, alt },    "author": author->{      name,      "slug": slug.current,      image    },    "categories": categories[]->{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    }  }
 export type POST_BY_SLUG_QUERY_RESULT = {
   title: string | null;
   body: BlockContent | null;
@@ -463,7 +629,7 @@ export type POST_BY_SLUG_QUERY_RESULT = {
 
 // Source: src/sanity/lib/queries.ts
 // Variable: POSTS_INDEX_QUERY
-// Query: *[_type == "post" && count(title[_key == $locale && value != null]) > 0]    | order(publishedAt desc){    "title":     coalesce(title[_key == $locale][0].value, title[0].value),    "slug":      slug.current,    publishedAt,    mainImage{ asset, alt }  }
+// Query: *[_type == "post" && count(title[language == $locale && value != null]) > 0]    | order(publishedAt desc){    "title":     coalesce(title[language == $locale][0].value, title[0].value),    "slug":      slug.current,    publishedAt,    mainImage{ asset, alt }  }
 export type POSTS_INDEX_QUERY_RESULT = Array<{
   title: string | null;
   slug: string | null;
@@ -476,14 +642,14 @@ export type POSTS_INDEX_QUERY_RESULT = Array<{
 
 // Source: src/sanity/lib/queries.ts
 // Variable: CATEGORY_SLUGS_QUERY
-// Query: *[_type == "category" && count(title[_key == $locale && value != null]) > 0]{    "slug": slug.current  }
+// Query: *[_type == "category" && count(title[language == $locale && value != null]) > 0]{    "slug": slug.current  }
 export type CATEGORY_SLUGS_QUERY_RESULT = Array<{
   slug: string | null;
 }>;
 
 // Source: src/sanity/lib/queries.ts
 // Variable: CATEGORY_BY_SLUG_QUERY
-// Query: *[_type == "category" && slug.current == $slug][0]{    "title":       coalesce(title[_key == $locale][0].value, title[0].value),    "description": coalesce(description[_key == $locale][0].value, description[0].value),    "slug":        slug.current,    "posts": *[_type == "post" && references(^._id)      && count(title[_key == $locale && value != null]) > 0]      | order(publishedAt desc){      "title":     coalesce(title[_key == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt }    }  }
+// Query: *[_type == "category" && slug.current == $slug][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "description": coalesce(description[language == $locale][0].value, description[0].value),    "slug":        slug.current,    "posts": *[_type == "post" && references(^._id)      && count(title[language == $locale && value != null]) > 0]      | order(publishedAt desc){      "title":     coalesce(title[language == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt }    }  }
 export type CATEGORY_BY_SLUG_QUERY_RESULT = {
   title: string | null;
   description: string | null;
@@ -508,7 +674,7 @@ export type AUTHOR_SLUGS_QUERY_RESULT = Array<{
 
 // Source: src/sanity/lib/queries.ts
 // Variable: AUTHOR_BY_SLUG_QUERY
-// Query: *[_type == "author" && slug.current == $slug][0]{    name,    "slug": slug.current,    image,    "bio": coalesce(bio[_key == $locale][0].value, bio[0].value),    "posts": *[_type == "post" && references(^._id)      && count(title[_key == $locale && value != null]) > 0]      | order(publishedAt desc){      "title":     coalesce(title[_key == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt }    }  }
+// Query: *[_type == "author" && slug.current == $slug][0]{    name,    "slug": slug.current,    image,    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),    "posts": *[_type == "post" && references(^._id)      && count(title[language == $locale && value != null]) > 0]      | order(publishedAt desc){      "title":     coalesce(title[language == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt }    }  }
 export type AUTHOR_BY_SLUG_QUERY_RESULT = {
   name: string | null;
   slug: string | null;
@@ -534,14 +700,14 @@ export type AUTHOR_BY_SLUG_QUERY_RESULT = {
 
 // Source: src/sanity/lib/queries.ts
 // Variable: PAGE_SLUGS_QUERY
-// Query: *[_type == "page" && count(title[_key == $locale && value != null]) > 0]{    "slug": slug.current  }
+// Query: *[_type == "page" && count(title[language == $locale && value != null]) > 0]{    "slug": slug.current  }
 export type PAGE_SLUGS_QUERY_RESULT = Array<{
   slug: string | null;
 }>;
 
 // Source: src/sanity/lib/queries.ts
 // Variable: PAGE_BY_SLUG_QUERY
-// Query: *[_type == "page" && slug.current == $slug][0]{    "title":          coalesce(title[_key == $locale][0].value, title[0].value),    "body":           coalesce(body[_key == $locale][0].value, body[0].value),    "seoDescription": coalesce(seoDescription[_key == $locale][0].value, seoDescription[0].value),    "slug":           slug.current,    ogImage  }
+// Query: *[_type == "page" && slug.current == $slug][0]{    "title":          coalesce(title[language == $locale][0].value, title[0].value),    "body":           coalesce(body[language == $locale][0].value, body[0].value),    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),    "slug":           slug.current,    ogImage  }
 export type PAGE_BY_SLUG_QUERY_RESULT = {
   title: string | null;
   body: BlockContent | null;
@@ -559,7 +725,7 @@ export type PAGE_BY_SLUG_QUERY_RESULT = {
 
 // Source: src/sanity/lib/queries.ts
 // Variable: SITE_SETTINGS_QUERY
-// Query: *[_type == "siteSettings"][0]{    "title":       coalesce(title[_key == $locale][0].value, title[0].value),    "description": coalesce(description[_key == $locale][0].value, description[0].value),    siteUrl,    ogImage,    "primaryNav": primaryNav->{      items[]{        "label": coalesce(label[_key == $locale][0].value, label[0].value),        href,        "internalRef": internalRef->{ _type, "slug": slug.current }      }    }  }
+// Query: *[_type == "siteSettings"][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "description": coalesce(description[language == $locale][0].value, description[0].value),    siteUrl,    ogImage,    "primaryNav": primaryNav->{      items[]{        "label": coalesce(label[language == $locale][0].value, label[0].value),        href,        "internalRef": internalRef->{ _type, "slug": slug.current }      }    }  }
 export type SITE_SETTINGS_QUERY_RESULT = {
   title: string | null;
   description: string | null;
@@ -596,7 +762,7 @@ export type SITE_SETTINGS_QUERY_RESULT = {
 
 // Source: src/sanity/lib/queries.ts
 // Variable: FOOTER_QUERY
-// Query: *[_type == "footer"][0]{    instagramURL,    cellNumber,    email,    "address":   coalesce(address[_key == $locale][0].value, address[0].value),    "copyright": coalesce(copyright[_key == $locale][0].value, copyright[0].value)  }
+// Query: *[_type == "footer"][0]{    instagramURL,    cellNumber,    email,    "address":   coalesce(address[language == $locale][0].value, address[0].value),    "copyright": coalesce(copyright[language == $locale][0].value, copyright[0].value)  }
 export type FOOTER_QUERY_RESULT = {
   instagramURL: string | null;
   cellNumber: string | null;
@@ -607,7 +773,7 @@ export type FOOTER_QUERY_RESULT = {
 
 // Source: src/sanity/lib/queries.ts
 // Variable: LANDING_QUERY
-// Query: *[_type == "landing"][0]{    "title":       coalesce(title[_key == $locale][0].value, title[0].value),    landingImage{ asset, alt },    image{ asset, alt },    "ctaText":    coalesce(ctaText[_key == $locale][0].value, ctaText[0].value),    "ctaBtnText": coalesce(ctaBtnText[_key == $locale][0].value, ctaBtnText[0].value)  }
+// Query: *[_type == "landing"][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    landingImage{ asset, alt },    image{ asset, alt },    "ctaText":    coalesce(ctaText[language == $locale][0].value, ctaText[0].value),    "ctaBtnText": coalesce(ctaBtnText[language == $locale][0].value, ctaBtnText[0].value)  }
 export type LANDING_QUERY_RESULT = {
   title: string | null;
   landingImage: {
@@ -622,21 +788,35 @@ export type LANDING_QUERY_RESULT = {
   ctaBtnText: string | null;
 } | null;
 
+// Source: src/sanity/lib/queries.ts
+// Variable: THEME_QUERY
+// Query: *[_type == "theme"][0]{    radius,    light,    dark,    fonts  }
+export type THEME_QUERY_RESULT = {
+  radius: "0.25rem" | "0.5rem" | "0.75rem" | "0" | "1rem" | null;
+  light: ThemePalette | null;
+  dark: ThemePalette | null;
+  fonts: ThemeFonts | null;
+} | null;
+
 // Query TypeMap
-import "@sanity/client";
-declare module "@sanity/client" {
+declare global {
   interface SanityQueries {
-    '\n  *[_type == "post" && count(title[_key == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': POST_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "post" && slug.current == $slug][0]{\n    "title":       coalesce(title[_key == $locale][0].value, title[0].value),\n    "body":        coalesce(body[_key == $locale][0].value,  body[0].value),\n    publishedAt,\n    mainImage{ asset, alt },\n    "author": author->{\n      name,\n      "slug": slug.current,\n      image\n    },\n    "categories": categories[]->{\n      "title": coalesce(title[_key == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    }\n  }\n': POST_BY_SLUG_QUERY_RESULT;
-    '\n  *[_type == "post" && count(title[_key == $locale && value != null]) > 0]\n    | order(publishedAt desc){\n    "title":     coalesce(title[_key == $locale][0].value, title[0].value),\n    "slug":      slug.current,\n    publishedAt,\n    mainImage{ asset, alt }\n  }\n': POSTS_INDEX_QUERY_RESULT;
-    '\n  *[_type == "category" && count(title[_key == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': CATEGORY_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "category" && slug.current == $slug][0]{\n    "title":       coalesce(title[_key == $locale][0].value, title[0].value),\n    "description": coalesce(description[_key == $locale][0].value, description[0].value),\n    "slug":        slug.current,\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[_key == $locale && value != null]) > 0]\n      | order(publishedAt desc){\n      "title":     coalesce(title[_key == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt }\n    }\n  }\n': CATEGORY_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "post" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': POST_SLUGS_QUERY_RESULT;
+    '\n  *[_type == "post" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "body":        coalesce(body[language == $locale][0].value,  body[0].value),\n    publishedAt,\n    mainImage{ asset, alt },\n    "author": author->{\n      name,\n      "slug": slug.current,\n      image\n    },\n    "categories": categories[]->{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    }\n  }\n': POST_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "post" && count(title[language == $locale && value != null]) > 0]\n    | order(publishedAt desc){\n    "title":     coalesce(title[language == $locale][0].value, title[0].value),\n    "slug":      slug.current,\n    publishedAt,\n    mainImage{ asset, alt }\n  }\n': POSTS_INDEX_QUERY_RESULT;
+    '\n  *[_type == "category" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': CATEGORY_SLUGS_QUERY_RESULT;
+    '\n  *[_type == "category" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    "slug":        slug.current,\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt }\n    }\n  }\n': CATEGORY_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "author" && defined(slug.current)]{ "slug": slug.current }\n': AUTHOR_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "author" && slug.current == $slug][0]{\n    name,\n    "slug": slug.current,\n    image,\n    "bio": coalesce(bio[_key == $locale][0].value, bio[0].value),\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[_key == $locale && value != null]) > 0]\n      | order(publishedAt desc){\n      "title":     coalesce(title[_key == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt }\n    }\n  }\n': AUTHOR_BY_SLUG_QUERY_RESULT;
-    '\n  *[_type == "page" && count(title[_key == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': PAGE_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "page" && slug.current == $slug][0]{\n    "title":          coalesce(title[_key == $locale][0].value, title[0].value),\n    "body":           coalesce(body[_key == $locale][0].value, body[0].value),\n    "seoDescription": coalesce(seoDescription[_key == $locale][0].value, seoDescription[0].value),\n    "slug":           slug.current,\n    ogImage\n  }\n': PAGE_BY_SLUG_QUERY_RESULT;
-    '\n  *[_type == "siteSettings"][0]{\n    "title":       coalesce(title[_key == $locale][0].value, title[0].value),\n    "description": coalesce(description[_key == $locale][0].value, description[0].value),\n    siteUrl,\n    ogImage,\n    "primaryNav": primaryNav->{\n      items[]{\n        "label": coalesce(label[_key == $locale][0].value, label[0].value),\n        href,\n        "internalRef": internalRef->{ _type, "slug": slug.current }\n      }\n    }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
-    '\n  *[_type == "footer"][0]{\n    instagramURL,\n    cellNumber,\n    email,\n    "address":   coalesce(address[_key == $locale][0].value, address[0].value),\n    "copyright": coalesce(copyright[_key == $locale][0].value, copyright[0].value)\n  }\n': FOOTER_QUERY_RESULT;
-    '\n  *[_type == "landing"][0]{\n    "title":       coalesce(title[_key == $locale][0].value, title[0].value),\n    landingImage{ asset, alt },\n    image{ asset, alt },\n    "ctaText":    coalesce(ctaText[_key == $locale][0].value, ctaText[0].value),\n    "ctaBtnText": coalesce(ctaBtnText[_key == $locale][0].value, ctaBtnText[0].value)\n  }\n': LANDING_QUERY_RESULT;
+    '\n  *[_type == "author" && slug.current == $slug][0]{\n    name,\n    "slug": slug.current,\n    image,\n    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt }\n    }\n  }\n': AUTHOR_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "page" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': PAGE_SLUGS_QUERY_RESULT;
+    '\n  *[_type == "page" && slug.current == $slug][0]{\n    "title":          coalesce(title[language == $locale][0].value, title[0].value),\n    "body":           coalesce(body[language == $locale][0].value, body[0].value),\n    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),\n    "slug":           slug.current,\n    ogImage\n  }\n': PAGE_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "siteSettings"][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    siteUrl,\n    ogImage,\n    "primaryNav": primaryNav->{\n      items[]{\n        "label": coalesce(label[language == $locale][0].value, label[0].value),\n        href,\n        "internalRef": internalRef->{ _type, "slug": slug.current }\n      }\n    }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
+    '\n  *[_type == "footer"][0]{\n    instagramURL,\n    cellNumber,\n    email,\n    "address":   coalesce(address[language == $locale][0].value, address[0].value),\n    "copyright": coalesce(copyright[language == $locale][0].value, copyright[0].value)\n  }\n': FOOTER_QUERY_RESULT;
+    '\n  *[_type == "landing"][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    landingImage{ asset, alt },\n    image{ asset, alt },\n    "ctaText":    coalesce(ctaText[language == $locale][0].value, ctaText[0].value),\n    "ctaBtnText": coalesce(ctaBtnText[language == $locale][0].value, ctaBtnText[0].value)\n  }\n': LANDING_QUERY_RESULT;
+    '\n  *[_type == "theme"][0]{\n    radius,\n    light,\n    dark,\n    fonts\n  }\n': THEME_QUERY_RESULT;
   }
+}
+// Lets @sanity/client releases that predate the global registry read it too
+declare module "@sanity/client" {
+  interface SanityQueries extends globalThis.SanityQueries {}
 }

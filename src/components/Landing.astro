@@ -35,8 +35,8 @@ const landingImage = landing?.landingImage?.asset
           : ""
       }
     >
-      {/* semi-transparent overlay for text readability */}
-      <div class="absolute inset-0 bg-black/40" />
+      {/* gradient scrim for text readability over any photo */}
+      <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-black/30" />
 
       {/* main content */}
       <section class="relative flex h-full grow items-center justify-center z-10">

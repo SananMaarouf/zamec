@@ -6,15 +6,15 @@ import { defineQuery } from "groq";
 // broken half-rendered pages for missing translations.
 
 export const POST_SLUGS_QUERY = defineQuery(`
-  *[_type == "post" && count(title[_key == $locale && value != null]) > 0]{
+  *[_type == "post" && count(title[language == $locale && value != null]) > 0]{
     "slug": slug.current
   }
 `);
 
 export const POST_BY_SLUG_QUERY = defineQuery(`
   *[_type == "post" && slug.current == $slug][0]{
-    "title":       coalesce(title[_key == $locale][0].value, title[0].value),
-    "body":        coalesce(body[_key == $locale][0].value,  body[0].value),
+    "title":       coalesce(title[language == $locale][0].value, title[0].value),
+    "body":        coalesce(body[language == $locale][0].value,  body[0].value),
     publishedAt,
     mainImage{ asset, alt },
     "author": author->{
@@ -23,16 +23,16 @@ export const POST_BY_SLUG_QUERY = defineQuery(`
       image
     },
     "categories": categories[]->{
-      "title": coalesce(title[_key == $locale][0].value, title[0].value),
+      "title": coalesce(title[language == $locale][0].value, title[0].value),
       "slug":  slug.current
     }
   }
 `);
 
 export const POSTS_INDEX_QUERY = defineQuery(`
-  *[_type == "post" && count(title[_key == $locale && value != null]) > 0]
+  *[_type == "post" && count(title[language == $locale && value != null]) > 0]
     | order(publishedAt desc){
-    "title":     coalesce(title[_key == $locale][0].value, title[0].value),
+    "title":     coalesce(title[language == $locale][0].value, title[0].value),
     "slug":      slug.current,
     publishedAt,
     mainImage{ asset, alt }
@@ -42,20 +42,20 @@ export const POSTS_INDEX_QUERY = defineQuery(`
 // ───── Categories ──────────────────────────────────────────────────────────
 
 export const CATEGORY_SLUGS_QUERY = defineQuery(`
-  *[_type == "category" && count(title[_key == $locale && value != null]) > 0]{
+  *[_type == "category" && count(title[language == $locale && value != null]) > 0]{
     "slug": slug.current
   }
 `);
 
 export const CATEGORY_BY_SLUG_QUERY = defineQuery(`
   *[_type == "category" && slug.current == $slug][0]{
-    "title":       coalesce(title[_key == $locale][0].value, title[0].value),
-    "description": coalesce(description[_key == $locale][0].value, description[0].value),
+    "title":       coalesce(title[language == $locale][0].value, title[0].value),
+    "description": coalesce(description[language == $locale][0].value, description[0].value),
     "slug":        slug.current,
     "posts": *[_type == "post" && references(^._id)
-      && count(title[_key == $locale && value != null]) > 0]
+      && count(title[language == $locale && value != null]) > 0]
       | order(publishedAt desc){
-      "title":     coalesce(title[_key == $locale][0].value, title[0].value),
+      "title":     coalesce(title[language == $locale][0].value, title[0].value),
       "slug":      slug.current,
       publishedAt,
       mainImage{ asset, alt }
@@ -74,11 +74,11 @@ export const AUTHOR_BY_SLUG_QUERY = defineQuery(`
     name,
     "slug": slug.current,
     image,
-    "bio": coalesce(bio[_key == $locale][0].value, bio[0].value),
+    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),
     "posts": *[_type == "post" && references(^._id)
-      && count(title[_key == $locale && value != null]) > 0]
+      && count(title[language == $locale && value != null]) > 0]
       | order(publishedAt desc){
-      "title":     coalesce(title[_key == $locale][0].value, title[0].value),
+      "title":     coalesce(title[language == $locale][0].value, title[0].value),
       "slug":      slug.current,
       publishedAt,
       mainImage{ asset, alt }
@@ -89,16 +89,16 @@ export const AUTHOR_BY_SLUG_QUERY = defineQuery(`
 // ───── Pages ───────────────────────────────────────────────────────────────
 
 export const PAGE_SLUGS_QUERY = defineQuery(`
-  *[_type == "page" && count(title[_key == $locale && value != null]) > 0]{
+  *[_type == "page" && count(title[language == $locale && value != null]) > 0]{
     "slug": slug.current
   }
 `);
 
 export const PAGE_BY_SLUG_QUERY = defineQuery(`
   *[_type == "page" && slug.current == $slug][0]{
-    "title":          coalesce(title[_key == $locale][0].value, title[0].value),
-    "body":           coalesce(body[_key == $locale][0].value, body[0].value),
-    "seoDescription": coalesce(seoDescription[_key == $locale][0].value, seoDescription[0].value),
+    "title":          coalesce(title[language == $locale][0].value, title[0].value),
+    "body":           coalesce(body[language == $locale][0].value, body[0].value),
+    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),
     "slug":           slug.current,
     ogImage
   }
@@ -108,13 +108,13 @@ export const PAGE_BY_SLUG_QUERY = defineQuery(`
 
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0]{
-    "title":       coalesce(title[_key == $locale][0].value, title[0].value),
-    "description": coalesce(description[_key == $locale][0].value, description[0].value),
+    "title":       coalesce(title[language == $locale][0].value, title[0].value),
+    "description": coalesce(description[language == $locale][0].value, description[0].value),
     siteUrl,
     ogImage,
     "primaryNav": primaryNav->{
       items[]{
-        "label": coalesce(label[_key == $locale][0].value, label[0].value),
+        "label": coalesce(label[language == $locale][0].value, label[0].value),
         href,
         "internalRef": internalRef->{ _type, "slug": slug.current }
       }
@@ -127,17 +127,34 @@ export const FOOTER_QUERY = defineQuery(`
     instagramURL,
     cellNumber,
     email,
-    "address":   coalesce(address[_key == $locale][0].value, address[0].value),
-    "copyright": coalesce(copyright[_key == $locale][0].value, copyright[0].value)
+    "address":   coalesce(address[language == $locale][0].value, address[0].value),
+    "copyright": coalesce(copyright[language == $locale][0].value, copyright[0].value)
   }
 `);
 
 export const LANDING_QUERY = defineQuery(`
   *[_type == "landing"][0]{
-    "title":       coalesce(title[_key == $locale][0].value, title[0].value),
+    "title":       coalesce(title[language == $locale][0].value, title[0].value),
     landingImage{ asset, alt },
     image{ asset, alt },
-    "ctaText":    coalesce(ctaText[_key == $locale][0].value, ctaText[0].value),
-    "ctaBtnText": coalesce(ctaBtnText[_key == $locale][0].value, ctaBtnText[0].value)
+    "ctaText":    coalesce(ctaText[language == $locale][0].value, ctaText[0].value),
+    "ctaBtnText": coalesce(ctaBtnText[language == $locale][0].value, ctaBtnText[0].value)
+  }
+`);
+
+// ───── Theme ───────────────────────────────────────────────────────────────
+// Deliberately locale-free: the color palette and the font choices are
+// language-neutral, so this query takes no `$locale` param and no localized
+// document exists. `light` / `dark` are `themePalette` objects holding one hex
+// string per design token; `fonts` holds the two Google Fonts family names.
+// `src/lib/theme.ts` turns both into CSS variables (and, for the fonts, the
+// stylesheet URL rendered by the base layout).
+
+export const THEME_QUERY = defineQuery(`
+  *[_type == "theme"][0]{
+    radius,
+    light,
+    dark,
+    fonts
   }
 `);

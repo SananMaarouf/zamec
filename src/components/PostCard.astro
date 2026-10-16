@@ -25,21 +25,26 @@ const dateLabel = publishedAt
     })
   : null;
 ---
-<a href={href} class="group block rounded-lg border overflow-hidden hover:shadow-md transition-shadow">
+<a
+  href={href}
+  class="group flex flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+>
   {imgUrl && (
     <img
       src={imgUrl}
       alt={mainImage?.alt ?? title}
       width="640"
       height="360"
-      class="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
+      class="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-[1.03]"
       loading="lazy"
     />
   )}
-  <div class="p-4">
-    <h3 class="font-semibold text-lg leading-snug group-hover:underline">{title}</h3>
+  <div class="flex flex-1 flex-col p-5">
+    <h3 class="font-semibold text-lg leading-snug transition-colors group-hover:text-primary">
+      {title}
+    </h3>
     {dateLabel && (
-      <p class="text-sm text-muted-foreground mt-1">{dateLabel}</p>
+      <p class="mt-2 text-sm text-muted-foreground">{dateLabel}</p>
     )}
   </div>
 </a>

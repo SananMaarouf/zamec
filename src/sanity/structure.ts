@@ -1,6 +1,6 @@
 import type { StructureResolver } from "sanity/structure";
 
-const SINGLETONS = new Set(["siteSettings", "footer", "landing"]);
+const SINGLETONS = new Set(["siteSettings", "theme", "footer", "landing"]);
 
 export const structure: StructureResolver = (S) =>
   S.list()
@@ -12,6 +12,10 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.document().schemaType("siteSettings").documentId("siteSettings")
         ),
+      S.listItem()
+        .title("Theme")
+        .id("theme")
+        .child(S.document().schemaType("theme").documentId("theme")),
       S.listItem()
         .title("Footer")
         .id("footer")
