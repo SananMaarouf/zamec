@@ -5,6 +5,8 @@ import {
   resolveLocale,
   type Locale,
 } from "@/sanity/lib/locale";
+import LanguageFlag from "@/components/LanguageFlag.astro";
+import { cn } from "@/lib/utils";
 
 const current = resolveLocale(Astro.currentLocale);
 
@@ -36,12 +38,14 @@ const labels: Record<Locale, string> = {
       href={hrefFor(loc)}
       hreflang={loc}
       aria-current={loc === current ? "true" : undefined}
-      class={`px-2 py-1 rounded transition-colors ${
+      class={cn(
+        "flex items-center gap-2 rounded px-2 py-1 transition-colors",
         loc === current
           ? "bg-muted font-semibold"
-          : "text-muted-foreground hover:text-foreground"
-      }`}
+          : "text-muted-foreground hover:text-foreground",
+      )}
     >
+      <LanguageFlag locale={loc} class="h-3.5 w-5 shrink-0 rounded-xs" />
       {labels[loc]}
     </a>
   ))}

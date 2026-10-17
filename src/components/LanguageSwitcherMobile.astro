@@ -5,8 +5,8 @@ import {
   resolveLocale,
   type Locale,
 } from "@/sanity/lib/locale";
-import { buttonVariants } from "@/components/ui/button";
-import { mobileSheetOptionClassName } from "@/components/react/mobile-nav-styles";
+import { mobileSheetLinkClassName } from "@/components/react/mobile-nav-styles";
+import LanguageFlag from "@/components/LanguageFlag.astro";
 import { cn } from "@/lib/utils";
 
 const current = resolveLocale(Astro.currentLocale);
@@ -32,17 +32,23 @@ const labels: Record<Locale, string> = {
   nb: "Norsk",
 };
 ---
-<div class="flex flex-col gap-2">
+{/* Rendered as plain menu entries (same type scale and left edge as the other
+    links), each with its flag. The current language is tinted with the accent. */}
+<div class="flex w-full flex-col gap-8">
   {LOCALES.map((loc) => (
     <a
       href={hrefFor(loc)}
       hreflang={loc}
       aria-current={loc === current ? "true" : undefined}
       class={cn(
-        buttonVariants({ variant: loc === current ? "default" : "ghost" }),
-        mobileSheetOptionClassName,
+        mobileSheetLinkClassName,
+        "flex items-center gap-3",
+        loc === current
+          ? "text-primary"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
+      <LanguageFlag locale={loc} class="h-6 w-8 shrink-0 rounded-xs" />
       {labels[loc]}
     </a>
   ))}

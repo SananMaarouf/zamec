@@ -116,7 +116,7 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
                 <SheetHeader className="sr-only">
                   <SheetTitle>{logo.title}</SheetTitle>
                 </SheetHeader>
-                <div className="mx-auto flex w-fit max-w-full flex-col items-start gap-10 p-4 pt-10">
+                <div className="mx-auto flex w-fit max-w-full flex-col items-start gap-8 p-4 pt-10">
                   {menu.length > 0 && (
                     <Accordion
                       type="single"
@@ -127,28 +127,16 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
                     </Accordion>
                   )}
 
-                  <div className="flex w-full flex-col items-stretch gap-6">
+                  <div className="flex w-full flex-col items-stretch gap-8">
                     {linkBtn && (
                       <a href={linkBtn.url} className={mobileSheetLinkClassName}>
                         {linkBtn.title}
                       </a>
                     )}
-                    {mobileExtras && (
-                      <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value="language" className="border-b-0">
-                          <AccordionTrigger
-                            className={mobileSheetTriggerClassName}
-                          >
-                            Language
-                          </AccordionTrigger>
-                          <AccordionContent className="mt-2">
-                            {mobileExtras}
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    )}
-                    {/* The switch is self-explanatory, so it sits directly in
-                        the menu instead of behind a "Theme" accordion. */}
+                    {/* Language entries and the theme switch sit directly in
+                        the menu — both are self-explanatory, so they need no
+                        accordion row of their own. */}
+                    {mobileExtras}
                     <ThemeSwitch />
                   </div>
                 </div>

@@ -46,7 +46,7 @@ export function ThemeSwitch({ className }: { className?: string }) {
       aria-label="Dark mode"
       onClick={() => setThemeMode(isDark ? "light" : "dark")}
       className={cn(
-        "bg-muted focus-visible:ring-ring/50 relative inline-flex h-12 w-24 shrink-0 cursor-pointer items-center rounded-full border transition-colors outline-none focus-visible:ring-[3px]",
+        "bg-muted focus-visible:ring-ring/50 relative inline-flex h-12 w-24 shrink-0 cursor-pointer items-center rounded-0 border transition-colors outline-none focus-visible:ring-[3px]",
         className,
       )}
     >
@@ -54,7 +54,7 @@ export function ThemeSwitch({ className }: { className?: string }) {
       <span
         aria-hidden="true"
         className={cn(
-          "bg-primary absolute top-1 left-1 size-10 rounded-full shadow-sm transition-transform duration-300 ease-in-out",
+          "bg-primary absolute top-1 left-1 size-10 rounded-0 shadow-sm transition-transform duration-300 ease-in-out",
           isDark && "translate-x-12",
         )}
       />

@@ -18,7 +18,3 @@ export const mobileSheetLinkClassName =
  */
 export const mobileSheetTriggerClassName =
   "justify-start text-2xl py-0 font-semibold hover:no-underline [&>svg]:size-6";
-
-/** Option button inside a sheet accordion (the language choices). */
-export const mobileSheetOptionClassName =
-  "h-14 w-full justify-start gap-2 text-lg";
