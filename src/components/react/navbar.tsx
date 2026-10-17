@@ -68,26 +68,24 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
     >
       <div className="container">
         {/* Desktop Menu */}
-        <nav className="hidden justify-between gap-3 lg:flex">
-          <div className="flex items-center w-full">
-            <a href={logo.url} className="flex items-center">
-              <span className="text-lg font-semibold tracking-tighter whitespace-nowrap">
-                {logo.title}
-              </span>
-            </a>
+        <nav className="hidden items-center justify-between gap-3 lg:flex">
+          <a href={logo.url} className="flex items-center">
+            <span className="text-lg font-semibold tracking-tighter whitespace-nowrap">
+              {logo.title}
+            </span>
+          </a>
+          {/* Switches first, then the menu links: the controls read as sitting
+              in front of the navigation. Compact (`sm`) size on desktop. */}
+          <div className="flex items-center gap-3">
+            {children}
+            <ThemeSwitch size="sm" />
             {menu.length > 0 && (
-              <div className="flex ml-auto items-center">
-                <NavigationMenu className="[&_div.absolute]:-left-8 [&_div.absolute]:top-10">
-                  <NavigationMenuList>
-                    {menu.map((item) => renderMenuItem(item))}
-                  </NavigationMenuList>
-                </NavigationMenu>
-              </div>
+              <NavigationMenu className="[&_div.absolute]:-left-8 [&_div.absolute]:top-10">
+                <NavigationMenuList>
+                  {menu.map((item) => renderMenuItem(item))}
+                </NavigationMenuList>
+              </NavigationMenu>
             )}
-          </div>
-          <div className="flex gap-2 items-center">
-            {children && <div className="flex items-center">{children}</div>}
-            <ThemeSwitch />
             {linkBtn && (
               <a href={linkBtn.url} className={navLinkClassName}>
                 {linkBtn.title}
