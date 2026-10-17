@@ -6,6 +6,7 @@ import {
   type Locale,
 } from "@/sanity/lib/locale";
 import { buttonVariants } from "@/components/ui/button";
+import { mobileSheetOptionClassName } from "@/components/react/mobile-nav-styles";
 import { cn } from "@/lib/utils";
 
 const current = resolveLocale(Astro.currentLocale);
@@ -39,7 +40,7 @@ const labels: Record<Locale, string> = {
       aria-current={loc === current ? "true" : undefined}
       class={cn(
         buttonVariants({ variant: loc === current ? "default" : "ghost" }),
-        "w-full justify-start gap-2",
+        mobileSheetOptionClassName,
       )}
     >
       {labels[loc]}

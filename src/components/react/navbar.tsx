@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  mobileSheetLinkClassName,
+  mobileSheetTriggerClassName,
+} from "./mobile-nav-styles";
 import {
   Accordion,
   AccordionContent,
@@ -34,8 +39,6 @@ export interface MenuItem {
 interface NavbarProps {
   logo: {
     url: string;
-    src: string;
-    alt: string;
     title: string;
   };
   menu?: MenuItem[];
@@ -52,6 +55,11 @@ interface NavbarProps {
 const navLinkClassName =
   "bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors";
 
+// The mobile sheet is the only navigation on small screens: its entries sit in
+// a content-width column that is centered in the sheet, while the labels
+// themselves stay left-aligned with each other. Shared classes (also used by
+// the Theme entry in `theme-switcher.tsx`) live in `mobile-nav-styles.ts`.
+
 const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProps) => {
   return (
     <section
@@ -62,12 +70,7 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
         {/* Desktop Menu */}
         <nav className="hidden justify-between gap-3 lg:flex">
           <div className="flex items-center w-full">
-            <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
+            <a href={logo.url} className="flex items-center">
               <span className="text-lg font-semibold tracking-tighter whitespace-nowrap">
                 {logo.title}
               </span>
@@ -95,56 +98,47 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
 
         {/* Mobile Menu */}
         <div className="block lg:hidden">
-          <div className="flex items-center justify-between">
-            <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
-              <span className="text-lg font-semibold tracking-tighter whitespace-nowrap">
+          <div className="flex items-center justify-between gap-4">
+            <a href={logo.url} className="flex items-center">
+              <span className="text-2xl font-semibold tracking-tighter whitespace-nowrap">
                 {logo.title}
               </span>
             </a>
             <Sheet>
               <SheetTrigger asChild>
-                <Button size="icon-lg">
-                  <Menu className="size-4" />
+                <Button size="icon-lg" className="size-12">
+                  <Menu className="size-7" />
                 </Button>
               </SheetTrigger>
               <SheetContent className="overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
-                      <img
-                        src={logo.src}
-                        className="max-h-8 dark:invert"
-                        alt={logo.alt}
-                      />
-                    </a>
-                  </SheetTitle>
+                {/* Kept visually hidden: Radix needs a title for screen
+                    readers, but the mobile sheet shows no visible heading. */}
+                <SheetHeader className="sr-only">
+                  <SheetTitle>{logo.title}</SheetTitle>
                 </SheetHeader>
-                <div className="flex flex-col gap-6 p-4">
+                <div className="mx-auto flex w-fit max-w-full flex-col items-start gap-10 p-4 pt-10">
                   {menu.length > 0 && (
                     <Accordion
                       type="single"
                       collapsible
-                      className="flex w-full wrap-break-word flex-col gap-4"
+                      className="flex w-full wrap-break-word flex-col gap-8"
                     >
                       {menu.map((item) => renderMobileMenuItem(item))}
                     </Accordion>
                   )}
 
-                  <div className="flex flex-col gap-3">
+                  <div className="flex w-full flex-col items-stretch gap-6">
                     {linkBtn && (
-                      <a href={linkBtn.url} className="text-md font-semibold">
+                      <a href={linkBtn.url} className={mobileSheetLinkClassName}>
                         {linkBtn.title}
                       </a>
                     )}
                     {mobileExtras && (
                       <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="language" className="border-b-0">
-                          <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
+                          <AccordionTrigger
+                            className={mobileSheetTriggerClassName}
+                          >
                             Language
                           </AccordionTrigger>
                           <AccordionContent className="mt-2">
@@ -193,13 +187,17 @@ const renderMenuItem = (item: MenuItem) => {
 const renderMobileMenuItem = (item: MenuItem) => {
   if (item.items) {
     return (
-      <AccordionItem key={item.title} value={item.title} className="border-b-0">
-        <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
+      <AccordionItem
+        key={item.title}
+        value={item.title}
+        className="w-full border-b-0"
+      >
+        <AccordionTrigger className={mobileSheetTriggerClassName}>
           {item.title}
         </AccordionTrigger>
         <AccordionContent className="mt-2">
           {item.items.map((subItem) => (
-            <SubMenuLink key={subItem.title} item={subItem} />
+            <SubMenuLink key={subItem.title} item={subItem} inSheet />
           ))}
         </AccordionContent>
       </AccordionItem>
@@ -207,22 +205,32 @@ const renderMobileMenuItem = (item: MenuItem) => {
   }
 
   return (
-    <a key={item.title} href={item.url} className="text-md font-semibold">
+    <a key={item.title} href={item.url} className={mobileSheetLinkClassName}>
       {item.title}
     </a>
   );
 };
 
-const SubMenuLink = ({ item }: { item: MenuItem }) => {
+const SubMenuLink = ({
+  item,
+  inSheet = false,
+}: {
+  item: MenuItem;
+  /** Mobile sheet: fill the menu column and keep the text left-aligned. */
+  inSheet?: boolean;
+}) => {
   return (
     <a
-      className="hover:bg-muted hover:text-accent-foreground flex min-w-70
-      select-none flex-row gap-4 rounded-md p-3 leading-none
-      no-underline outline-none transition-colors"
+      className={cn(
+        "hover:bg-muted hover:text-accent-foreground flex min-w-70 select-none flex-row gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors",
+        inSheet && "w-full min-w-0 justify-start text-left",
+      )}
       href={item.url}
     >
       <div>
-        <div className="text-sm font-semibold">{item.title}</div>
+        <div className={cn("text-sm font-semibold", inSheet && "text-xl")}>
+          {item.title}
+        </div>
         {item.description && (
           <p className="text-muted-foreground text-sm leading-snug wrap-break-word whitespace-normal">
             {item.description}

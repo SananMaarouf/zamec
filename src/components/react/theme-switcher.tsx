@@ -7,6 +7,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  mobileSheetOptionClassName,
+  mobileSheetTriggerClassName,
+} from "./mobile-nav-styles";
 
 export function ThemeSwitcher() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -65,15 +69,15 @@ export function ThemeSwitcherMobile() {
 
   return (
     <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value="theme" className="border-b-0">
-        <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
+      <AccordionItem value="theme" className="w-full border-b-0">
+        <AccordionTrigger className={mobileSheetTriggerClassName}>
           Theme
         </AccordionTrigger>
         <AccordionContent className="mt-2 flex flex-col gap-2">
           <Button
             variant={theme === "light" ? "default" : "ghost"}
             onClick={() => setThemeMode("light")}
-            className="w-full justify-start gap-2"
+            className={mobileSheetOptionClassName}
           >
             <Sun className="h-5 w-5" />
             <span>Light Mode</span>
@@ -81,7 +85,7 @@ export function ThemeSwitcherMobile() {
           <Button
             variant={theme === "dark" ? "default" : "ghost"}
             onClick={() => setThemeMode("dark")}
-            className="w-full justify-start gap-2"
+            className={mobileSheetOptionClassName}
           >
             <Moon className="h-5 w-5" />
             <span>Dark Mode</span>
