@@ -147,21 +147,9 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
                         </AccordionItem>
                       </Accordion>
                     )}
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem
-                        value="theme"
-                        className="w-full border-b-0"
-                      >
-                        <AccordionTrigger
-                          className={mobileSheetTriggerClassName}
-                        >
-                          Theme
-                        </AccordionTrigger>
-                        <AccordionContent className="mt-2">
-                          <ThemeSwitch />
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
+                    {/* The switch is self-explanatory, so it sits directly in
+                        the menu instead of behind a "Theme" accordion. */}
+                    <ThemeSwitch />
                   </div>
                 </div>
               </SheetContent>
