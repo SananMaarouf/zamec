@@ -3,8 +3,7 @@ import "@/styles/global.css";
 import { Navbar, type MenuItem } from "@/components/react/navbar";
 import Footer from "@/components/Footer.astro";
 import SEO from "@/components/SEO.astro";
-import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
-import LanguageSwitcherMobile from "@/components/LanguageSwitcherMobile.astro";
+import LanguageSwitch from "@/components/LanguageSwitch.astro";
 import { loadQuery } from "@/sanity/lib/load-query";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { loadTheme } from "@/sanity/lib/theme-query";
@@ -113,8 +112,8 @@ const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
       menu={menu}
       linkBtn={{ title: "Posts", url: localizedPath(locale, "/posts") }}
     >
-      <LanguageSwitcher />
-      <LanguageSwitcherMobile slot="mobileExtras" />
+      <LanguageSwitch />
+      <LanguageSwitch slot="mobileExtras" />
     </Navbar>
     <main class="flex-1">
       <slot />

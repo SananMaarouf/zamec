@@ -1,10 +1,7 @@
 /**
- * Classes shared by the mobile sheet menu.
- *
- * The sheet's entries come from `navbar.tsx` (CMS menu links and the
- * "Language"/"Theme" accordion rows) and `LanguageSwitcherMobile.astro` (the
- * language option buttons). They have to look identical, so the class strings
- * live here instead of being duplicated per component.
+ * Classes shared by the mobile sheet menu: the CMS menu links in `navbar.tsx`
+ * and the accordion rows that hold their sub-items. They have to look
+ * identical, so the class strings live here instead of being duplicated.
  */
 
 /** Plain menu link in the sheet, e.g. "About me". */
