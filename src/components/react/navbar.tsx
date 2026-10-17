@@ -27,7 +27,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ThemeSwitcher, ThemeSwitcherMobile } from "./theme-switcher";
+import { ThemeSwitch } from "./theme-switcher";
 
 export interface MenuItem {
   title: string;
@@ -57,8 +57,8 @@ const navLinkClassName =
 
 // The mobile sheet is the only navigation on small screens: its entries sit in
 // a content-width column that is centered in the sheet, while the labels
-// themselves stay left-aligned with each other. Shared classes (also used by
-// the Theme entry in `theme-switcher.tsx`) live in `mobile-nav-styles.ts`.
+// themselves stay left-aligned with each other. The shared classes live in
+// `mobile-nav-styles.ts`.
 
 const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProps) => {
   return (
@@ -87,7 +87,7 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
           </div>
           <div className="flex gap-2 items-center">
             {children && <div className="flex items-center">{children}</div>}
-            <ThemeSwitcher />
+            <ThemeSwitch />
             {linkBtn && (
               <a href={linkBtn.url} className={navLinkClassName}>
                 {linkBtn.title}
@@ -147,7 +147,21 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
                         </AccordionItem>
                       </Accordion>
                     )}
-                    <ThemeSwitcherMobile />
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem
+                        value="theme"
+                        className="w-full border-b-0"
+                      >
+                        <AccordionTrigger
+                          className={mobileSheetTriggerClassName}
+                        >
+                          Theme
+                        </AccordionTrigger>
+                        <AccordionContent className="mt-2">
+                          <ThemeSwitch />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </div>
                 </div>
               </SheetContent>

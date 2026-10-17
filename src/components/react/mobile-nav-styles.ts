@@ -1,10 +1,10 @@
 /**
  * Classes shared by the mobile sheet menu.
  *
- * The sheet is rendered from two components — `navbar.tsx` (the CMS menu
- * entries) and `theme-switcher.tsx` (the "Theme" entry) — plus the Language
- * buttons in `LanguageSwitcherMobile.astro`. They have to look identical, so
- * the class strings live here instead of being duplicated per component.
+ * The sheet's entries come from `navbar.tsx` (CMS menu links and the
+ * "Language"/"Theme" accordion rows) and `LanguageSwitcherMobile.astro` (the
+ * language option buttons). They have to look identical, so the class strings
+ * live here instead of being duplicated per component.
  */
 
 /** Plain menu link in the sheet, e.g. "About me". */
@@ -19,6 +19,6 @@ export const mobileSheetLinkClassName =
 export const mobileSheetTriggerClassName =
   "justify-start text-2xl py-0 font-semibold hover:no-underline [&>svg]:size-6";
 
-/** Option button inside a sheet accordion ("English", "Light Mode", ...). */
+/** Option button inside a sheet accordion (the language choices). */
 export const mobileSheetOptionClassName =
   "h-14 w-full justify-start gap-2 text-lg";
