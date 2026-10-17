@@ -44,13 +44,13 @@ const activeIndex = Math.max(0, LOCALES.indexOf(current));
 <div
   role="group"
   aria-label="Language"
-  class="bg-muted relative inline-flex h-12 w-24 shrink-0 items-center rounded-full border"
+  class="bg-muted relative inline-flex h-12 w-24 shrink-0 items-center rounded-0 border"
 >
   {/* Painted before the flags, so the active flag stays readable on top. */}
   <span
     aria-hidden="true"
     class={cn(
-      "bg-primary absolute top-1 left-1 size-10 rounded-full shadow-sm transition-transform duration-300 ease-in-out",
+      "bg-primary absolute top-1 left-1 size-10 rounded-0 shadow-sm transition-transform duration-300 ease-in-out",
       activeIndex > 0 && "translate-x-12",
     )}
   ></span>
@@ -61,7 +61,7 @@ const activeIndex = Math.max(0, LOCALES.indexOf(current));
       aria-current={loc === current ? "true" : undefined}
       aria-label={labels[loc]}
       class={cn(
-        "focus-visible:ring-ring/50 relative flex h-full w-1/2 items-center justify-center rounded-full outline-none transition-opacity focus-visible:ring-[3px]",
+        "focus-visible:ring-ring/50 relative flex h-full w-1/2 items-center justify-center rounded-0 outline-none transition-opacity focus-visible:ring-[3px]",
         loc === current ? "opacity-100" : "opacity-60 hover:opacity-100",
       )}
     >
