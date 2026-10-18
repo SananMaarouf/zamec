@@ -16,6 +16,10 @@ const UI_STRINGS = {
   allPosts: { en: "All posts", nb: "Alle innlegg" },
   /** Accessible name of the previous/next link row at the bottom of a post. */
   postNavigation: { en: "Post navigation", nb: "Innleggsnavigasjon" },
+  /** Accessible name of the button that scrolls the post's image strip back. */
+  galleryScrollPrevious: { en: "Previous images", nb: "Forrige bilder" },
+  /** Accessible name of the button that scrolls the post's image strip on. */
+  galleryScrollNext: { en: "Next images", nb: "Neste bilder" },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type UIStringKey = keyof typeof UI_STRINGS;

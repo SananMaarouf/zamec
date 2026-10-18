@@ -2,6 +2,7 @@
 import { localizedPath, type Locale } from "@/sanity/lib/locale";
 import { uiText } from "@/lib/ui-strings";
 import PortableText from "@/components/PortableText.astro";
+import PostImageGallery from "@/components/PostImageGallery.astro";
 import { urlForImage } from "@/sanity/lib/url-for-image";
 
 interface Props {
@@ -92,24 +93,7 @@ const allPostsLabel = uiText("allPosts", locale);
 
   {
     galleryItems.length > 0 && (
-      <div class="not-prose mb-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
-        {galleryItems.map((item) => (
-          <button
-            type="button"
-            data-lightbox-src={item.full}
-            data-lightbox-alt={item.alt}
-            aria-label="View image larger"
-            class="block cursor-zoom-in overflow-hidden rounded-lg border border-border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            <img
-              src={item.thumb}
-              alt={item.alt}
-              loading="lazy"
-              class="aspect-square w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
-            />
-          </button>
-        ))}
-      </div>
+      <PostImageGallery images={galleryItems} locale={locale} />
     )
   }
 
