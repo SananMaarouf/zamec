@@ -20,6 +20,17 @@ const UI_STRINGS = {
   galleryScrollPrevious: { en: "Previous images", nb: "Forrige bilder" },
   /** Accessible name of the button that scrolls the post's image strip on. */
   galleryScrollNext: { en: "Next images", nb: "Neste bilder" },
+  /** Headline of the 404 page. */
+  notFoundTitle: { en: "This page isn’t here", nb: "Denne siden finnes ikke" },
+  /** Body copy of the 404 page, under the headline. */
+  notFoundMessage: {
+    en: "The link may be out of date, or the page may have moved. Try the front page, or browse everything I’ve written.",
+    nb: "Lenken kan være utdatert, eller siden kan ha flyttet. Prøv forsiden, eller se alt jeg har skrevet.",
+  },
+  /** Primary action on the 404 page: back to the front page. */
+  notFoundHome: { en: "Front page", nb: "Forsiden" },
+  /** Secondary action on the 404 page: the posts index. */
+  notFoundPosts: { en: "Browse posts", nb: "Se alle innlegg" },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type UIStringKey = keyof typeof UI_STRINGS;

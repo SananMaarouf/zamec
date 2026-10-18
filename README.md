@@ -370,6 +370,7 @@ Other notes:
 | Add or adjust data fetching | `src/sanity/lib/queries.ts` |
 | Update layouts/components | `src/layouts/*`, `src/components/*` |
 | Update routes/pages | `src/pages/*` |
+| 404 copy / markup | `src/components/NotFound.astro`; routes in `src/pages/404.astro` + `src/pages/[locale]/404.astro`; served by `nginx.conf` `error_page` |
 
 ## Command reference
 

@@ -17,10 +17,12 @@ interface Props {
   image?: { asset?: any; alt?: string };
   /** Path *without* the locale prefix, e.g. `/post/hello`. */
   path?: string;
+  /** Error pages: emit `robots: noindex` and skip canonical/hreflang. */
+  noindex?: boolean;
 }
 
 const locale = resolveLocale(Astro.props.locale ?? Astro.currentLocale);
-const { title, description, image, path = "/" } = Astro.props;
+const { title, description, image, path = "/", noindex = false } = Astro.props;
 
 // The palette is language-neutral and identical for every locale, so its GROQ
 // query is locale-free and memoized across pages (see `theme-query.ts`), while
@@ -87,6 +89,7 @@ const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
       description={description}
       image={image}
       path={path}
+      noindex={noindex}
     />
     {themeCss && <style is:inline set:html={themeCss} />}
     <script is:inline>
