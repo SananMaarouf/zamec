@@ -33,6 +33,7 @@ jobs:
       PUBLIC_SANITY_PROJECT_ID: ${{ secrets.PUBLIC_SANITY_PROJECT_ID }}
       PUBLIC_SANITY_DATASET: ${{ secrets.PUBLIC_SANITY_DATASET }}
       PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
+      FORMSPREE_URL: ${{ secrets.FORMSPREE_URL }}
       # Unique token only for content update events; empty for normal code pushes (preserves build cache)
       CONTENT_UPDATE_TOKEN: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'sanity-update' && github.run_id || '' }}
 
@@ -68,6 +69,7 @@ jobs:
             PUBLIC_SANITY_PROJECT_ID=${{ env.PUBLIC_SANITY_PROJECT_ID }}
             PUBLIC_SANITY_DATASET=${{ env.PUBLIC_SANITY_DATASET }}
             PUBLIC_SITE_URL=${{ env.PUBLIC_SITE_URL }}
+            FORMSPREE_URL=${{ env.FORMSPREE_URL }}
             BUILD_COMMIT=${{ github.sha }}
             BUILD_TIMESTAMP=${{ github.event.head_commit.timestamp || '' }}
             CONTENT_UPDATE_TOKEN=${{ env.CONTENT_UPDATE_TOKEN }}

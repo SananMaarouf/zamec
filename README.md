@@ -44,6 +44,8 @@ Studio opens at <http://localhost:3333> (or use the hosted Sanity Studio at mana
 - CMS-driven typography: two Google Fonts (headings + body) picked from a
   previewed catalog in the same **Theme** document
 - Tailwind CSS + shadcn UI setup
+- Localized contact page (`/contact`, `/nb/contact`) with a TanStack Form + Zod
+  form that POSTs to a Formspree endpoint (`FORMSPREE_URL`)
 
 ## Prerequisites
 
@@ -97,7 +99,14 @@ Set values:
 PUBLIC_SANITY_PROJECT_ID="your-project-id"
 PUBLIC_SANITY_DATASET="production"
 PUBLIC_SITE_URL="http://localhost:4321"
+FORMSPREE_URL="https://formspree.io/f/your-form-id"
 ```
+
+`FORMSPREE_URL` is the Formspree endpoint the contact page posts to. It is read
+at build time and baked into the static HTML (a Formspree form id is public by
+design), so it also has to be set as a build arg / secret in the Docker build —
+see [Deployment](#deployment-cicd--dokploy). Without it the form still renders,
+but submitting shows the "not configured" message.
 
 ### 5) Keep Astro and Studio targeting the same Sanity project
 
@@ -371,6 +380,7 @@ Other notes:
 | Update layouts/components | `src/layouts/*`, `src/components/*` |
 | Update routes/pages | `src/pages/*` |
 | 404 copy / markup | `src/components/NotFound.astro`; routes in `src/pages/404.astro` + `src/pages/[locale]/404.astro`; served by `nginx.conf` `error_page` |
+| Contact page copy + form | `src/lib/ui-strings.ts` (`contact*`), `src/components/ContactPage.astro`, `src/components/react/contact-form.tsx`; routes in `src/pages/contact.astro` + `src/pages/[locale]/contact.astro` |
 
 ## Command reference
 

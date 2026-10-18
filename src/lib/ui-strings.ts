@@ -29,6 +29,15 @@ const UI_STRINGS = {
   },
   /** Primary action on the 404 page: back to the front page. */
   notFoundHome: { en: "Front page", nb: "Forsiden" },
+  /** Nav label of the contact page (a template-owned route, not CMS content). */
+  contactNav: { en: "Contact", nb: "Kontakt" },
+  /** Headline of the contact page. */
+  contactTitle: { en: "Get in touch", nb: "Ta kontakt" },
+  /** Body copy at the top of the contact page, above the form. */
+  contactIntro: {
+    en: "Questions about a piece, a commission or an order? Send a message below and I’ll reply as soon as I can.",
+    nb: "Spørsmål om et verk, et oppdrag eller en bestilling? Send en melding nedenfor, så svarer jeg så fort jeg kan.",
+  },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type UIStringKey = keyof typeof UI_STRINGS;

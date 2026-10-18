@@ -9,6 +9,7 @@ import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { loadTheme } from "@/sanity/lib/theme-query";
 import { themeFontsHref, themeToCss } from "@/lib/theme";
 import { resolveLocale, localizedPath, type Locale } from "@/sanity/lib/locale";
+import { uiText } from "@/lib/ui-strings";
 
 interface Props {
   locale?: Locale | string;
@@ -63,6 +64,14 @@ const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
     return { title: item.label, url };
   })
   .filter(Boolean) as MenuItem[];
+
+// The contact page is a template-owned route (there is no CMS document to
+// reference), so its nav entry is appended here instead of coming from the
+// Navigation document. Skip it when the editor already linked it themselves.
+const contactUrl = localizedPath(locale, "/contact");
+if (!menu.some((item) => item.url === contactUrl)) {
+  menu.push({ title: uiText("contactNav", locale), url: contactUrl });
+}
 ---
 
 <!doctype html>

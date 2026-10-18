@@ -4,13 +4,18 @@ import PortableText from "@/components/PortableText.astro";
 import { loadQuery } from "@/sanity/lib/load-query";
 import { PAGE_SLUGS_QUERY, PAGE_BY_SLUG_QUERY } from "@/sanity/lib/queries";
 import { DEFAULT_LOCALE } from "@/sanity/lib/locale";
+import { CONTACT_SLUG } from "@/lib/contact";
 
 export async function getStaticPaths() {
   const { data } = await loadQuery<Array<{ slug: string }>>({
     query: PAGE_SLUGS_QUERY,
     params: { locale: DEFAULT_LOCALE },
   });
-  return (data ?? []).map(({ slug }) => ({ params: { page: slug } }));
+  // `/contact` has its own route (with the form), so it must not be picked up
+  // here as a generic CMS page too.
+  return (data ?? [])
+    .filter(({ slug }) => slug !== CONTACT_SLUG)
+    .map(({ slug }) => ({ params: { page: slug } }));
 }
 
 const locale = DEFAULT_LOCALE;
