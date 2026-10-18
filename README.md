@@ -383,26 +383,57 @@ Other notes:
 | `npm run sanity:cors-add -- <origin> --credentials` | Allow frontend origin in Sanity CORS |
 | `npm run sanity:dataset-list` | Show datasets in current Sanity project |
 
-## Deployment checklist
+## Deployment (CI/CD → Dokploy)
 
-Before production deploy:
+Deploys are automated. Nothing is built locally or uploaded by hand:
 
-1. Set production environment variables
-2. Ensure `PUBLIC_SITE_URL` is your real domain
-3. Add production CORS origin:
+```
+push to main ──┐
+Sanity webhook ─┴─▶ GitHub Actions (deploy.yml)
+                     ├─ docker build (Astro build runs inside the image)
+                     ├─ push <owner>/<image>:latest | :main | :<sha> to Docker Hub
+                     └─ POST Dokploy deploy hook (trigger-deploy.yml) → pull + restart
+```
+
+- `.github/workflows/deploy.yml` — builds the image and pushes it. Triggers on pushes
+  to `main`, on manual `workflow_dispatch`, and on `repository_dispatch: sanity-update`
+  (content-only rebuilds reuse the Docker layer cache and only bust the `npm run build` step).
+- `.github/workflows/trigger-deploy.yml` — calls the Dokploy deploy hook behind Cloudflare
+  Access service auth. Reusable via `workflow_call` or runnable standalone.
+- `Dockerfile` — `node:24-alpine` builds `dist/`, `nginxinc/nginx-unprivileged:alpine`
+  serves it on port 8080 as non-root with the caching/security headers in `nginx.conf`.
+- `docker-compose.yml` — local reproduction: `docker compose up --build` → <http://localhost:8080>.
+
+### One-time setup
+
+1. **Docker Hub repo** for the image (e.g. `sananmaarouf/zamec`).
+2. **Dokploy application** using the `latest` image from that repo, exposed on port 8080.
+3. **GitHub repository secrets**:
+
+| Secret | Purpose |
+|---|---|
+| `DOCKERHUB_USERNAME` | Docker Hub account (also the image namespace) |
+| `DOCKERHUB_TOKEN` | Docker Hub access token, read/write |
+| `DOCKERHUB_IMAGE_NAME` | Image name, e.g. `zamec` |
+| `PUBLIC_SANITY_PROJECT_ID` | Baked into the build (public) |
+| `PUBLIC_SANITY_DATASET` | Baked into the build (public) |
+| `PUBLIC_SITE_URL` | Canonical origin, e.g. `https://zamec.no` |
+| `DOKPLOY_DEPLOY_HOOK_URL` | Application deploy hook |
+| `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` | Cloudflare Access service token for the hook |
+
+4. **Sanity webhook** (Manage → API → Webhooks) posting to
+   `https://api.github.com/repos/SananMaarouf/zamec/dispatches` with
+   `{"event_type": "sanity-update"}` so publishing content triggers a rebuild.
+5. Add the production CORS origin, and deploy the Studio once:
    ```bash
    npm run sanity:cors-add -- https://your-site.example --credentials
-   ```
-4. Deploy Sanity Studio (hosted, for browser-based content editing):
-   ```bash
    npm run sanity:deploy
    ```
-   After this, use the hosted Studio URL (e.g. `https://your-project.sanity.studio`) for all content changes instead of running `sanity:dev` locally.
-5. Build:
-   ```bash
-   npm run build
-   ```
-6. Deploy `dist/` to your host (or add an Astro adapter for SSR targets)
+   After this, edit content at the hosted Studio URL (`https://your-project.sanity.studio`).
+
+Note: the image build runs `npm ci` **with** devDependencies — Astro, Tailwind and the
+Sanity toolchain are build-time only for a static site, so never set `NODE_ENV=production`
+in the builder stage.
 
 ## Troubleshooting
 
