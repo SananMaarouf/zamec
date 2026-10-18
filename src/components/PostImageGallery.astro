@@ -5,10 +5,11 @@ import { uiText } from "@/lib/ui-strings";
 /**
  * Image strip for a post's gallery.
  *
- * One sideways scrolling strip at every width: one tile at a time on a phone,
- * three on a desktop row. The tiles are sized so the next one always peeks in
- * at the right edge — the cue that there is more to scroll — and a pair of
- * arrow controls appears above the strip when a post has more images than one
+ * One sideways scrolling strip at every width, kept small next to the post's
+ * cover image: two short (4:3) tiles at a time on a phone, three square ones
+ * on a desktop row. The tiles are sized so the next one always peeks in at the
+ * right edge — the cue that there is more to scroll — and a pair of arrow
+ * controls appears above the strip when a post has more images than one
  * desktop row holds (a mouse wheel cannot scroll a horizontal area, so the
  * arrows matter most on desktop; on a phone the strip is swiped).
  *
@@ -22,11 +23,8 @@ interface Props {
 
 const { images, locale } = Astro.props;
 
-/** Tiles across on a desktop row; the phone strip shows one at a time. */
+/** Tiles across on a desktop row. */
 const DESKTOP_TILES = 3;
-
-/** A post with a single gallery image has nothing to scroll. */
-const single = images.length === 1;
 
 /** Arrow controls, for posts with more images than one desktop row shows. */
 const scrollable = images.length > DESKTOP_TILES;
@@ -37,12 +35,22 @@ const scrollable = images.length > DESKTOP_TILES;
  * gaps and the peek exactly fill the row and the next tile is cut off by the
  * peek. The numbers are spelled out rather than computed because Tailwind only
  * emits a class it can read as literal text in the source:
- *   phone   → 1 tile + 0.75rem gap + 3rem peek; a lone image just fills the row
+ *   phone   → 2 tiles + 2 × 0.75rem gap + 2.5rem peek (≈147px on a 390px
+ *             screen, cropped to 4:3 so the strip stays short). With only two
+ *             images there is no third one to peek, so they fill the row
+ *             instead, and a lone image just fills it on its own
  *   desktop → 3 tiles + 3 × 0.75rem gap + 2.5rem peek when there is a fourth,
  *             otherwise 3 tiles + the 2 gaps between them
  */
+const mobileWidth =
+  images.length === 1
+    ? "w-full"
+    : images.length === 2
+      ? "w-[calc((100%-0.75rem)/2)]" // both tiles + the gap between them
+      : "w-[calc((100%-4rem)/2)]"; // 2 × 0.75rem gap + 2.5rem peek
+
 const tileWidth = [
-  single ? "w-full" : "w-[calc(100%-3.75rem)]",
+  mobileWidth,
   scrollable ? "sm:w-[calc((100%-4.75rem)/3)]" : "sm:w-[calc((100%-1.5rem)/3)]",
 ].join(" ");
 
@@ -55,6 +63,10 @@ const controlClass =
 
 const tileClass =
   "block w-full cursor-zoom-in overflow-hidden rounded-lg border border-border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+/* Short tiles on a phone (see the tile width note), square from `sm` up. */
+const imageClass =
+  "aspect-[4/3] w-full object-cover transition-transform duration-300 hover:scale-[1.03] sm:aspect-square";
 ---
 
 <div class="not-prose mb-8" data-gallery>
@@ -111,7 +123,7 @@ const tileClass =
               src={image.thumb}
               alt={image.alt}
               loading="lazy"
-              class="aspect-square w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
+              class={imageClass}
             />
           </button>
         </li>
