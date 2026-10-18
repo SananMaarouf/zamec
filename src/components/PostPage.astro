@@ -221,7 +221,7 @@ const allPostsLabel = uiText("allPosts", locale);
   aria-label="Image viewer"
   tabindex="-1"
   style="display: none;"
-  class="fixed inset-0 z-100 items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+  class="fixed inset-0 z-100 [touch-action:pan-y_pinch-zoom] items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
 >
   <button
     type="button"
@@ -247,7 +247,8 @@ const allPostsLabel = uiText("allPosts", locale);
     id="lightbox-image"
     src=""
     alt=""
-    class="h-auto max-h-[95svh] w-auto max-w-[95vw] object-contain"
+    draggable="false"
+    class="h-auto max-h-[95svh] w-auto max-w-[95vw] [touch-action:pan-y_pinch-zoom] object-contain select-none"
   />
   <button
     type="button"
@@ -285,6 +286,7 @@ const allPostsLabel = uiText("allPosts", locale);
       const trigger = triggers[current];
       imageEl.src = trigger.dataset.lightboxSrc ?? "";
       imageEl.alt = trigger.dataset.lightboxAlt ?? "";
+      imageEl.style.transform = "";
       overlay.style.display = "flex";
       document.body.style.overflow = "hidden";
       (overlay as HTMLElement).focus();
@@ -305,7 +307,69 @@ const allPostsLabel = uiText("allPosts", locale);
     prevBtn?.addEventListener("click", () => show(current - 1));
     nextBtn?.addEventListener("click", () => show(current + 1));
 
+    /* Swiping sideways moves to the previous/next image, which is the gesture
+       a phone user reaches for once the picture fills the screen. The overlay
+       and the image carry `touch-action: pan-y pinch-zoom`, so the horizontal
+       axis is ours even when the page itself is zoomed in and could otherwise
+       pan instead; a pinch still zooms, and a two-finger gesture is left alone
+       because only the primary pointer is tracked. */
+    const SWIPE_MIN = 40; // px a drag must travel before it counts as a swipe
+    let drag: { id: number; x: number; y: number } | null = null;
+    let dragX = 0;
+    let swallowedClick = false;
+
+    const endDrag = () => {
+      drag = null;
+      dragX = 0;
+      imageEl.style.transition = "transform 180ms ease-out";
+      imageEl.style.transform = "";
+      window.setTimeout(() => {
+        imageEl.style.transition = "";
+      }, 200);
+    };
+
+    overlay.addEventListener("pointerdown", (event) => {
+      const target = event.target as HTMLElement | null;
+      if (!multi || !event.isPrimary || drag) return;
+      if (target?.closest("[data-lightbox-close], [data-lightbox-prev], [data-lightbox-next]")) return;
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      dragX = 0;
+      imageEl.style.transition = "";
+    });
+
+    overlay.addEventListener("pointermove", (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const dx = event.clientX - drag.x;
+      // A mostly vertical drag belongs to the browser, not to us.
+      if (Math.abs(dx) < Math.abs(event.clientY - drag.y)) return;
+      dragX = dx;
+      imageEl.style.transform = `translateX(${dx}px)`;
+    });
+
+    overlay.addEventListener("pointerup", (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const dx = dragX;
+      endDrag();
+      if (Math.abs(dx) < SWIPE_MIN) return;
+      // A mouse drag is followed by a click on the backdrop, which must not
+      // close the viewer. A touch swipe is not, so the guard expires on its
+      // own rather than waiting for a click that may never come.
+      swallowedClick = true;
+      window.setTimeout(() => {
+        swallowedClick = false;
+      }, 400);
+      show(current + (dx < 0 ? 1 : -1));
+    });
+
+    overlay.addEventListener("pointercancel", () => {
+      if (drag) endDrag();
+    });
+
     overlay.addEventListener("click", (event) => {
+      if (swallowedClick) {
+        swallowedClick = false;
+        return;
+      }
       if (event.target === overlay) close();
     });
 
