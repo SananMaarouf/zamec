@@ -68,7 +68,7 @@ const allPostsLabel = uiText("allPosts", locale);
 ---
 
 <article
-  class="container mx-auto px-4 py-10 max-w-3xl prose dark:prose-invert text-center"
+  class="container mx-auto px-4 py-10 max-w-3xl prose dark:prose-invert"
 >
   <h1>{post.title}</h1>
 
@@ -101,7 +101,7 @@ const allPostsLabel = uiText("allPosts", locale);
 
   {
     post.categories?.length > 0 && (
-      <ul class="not-prose flex flex-wrap justify-center gap-2 mt-8">
+      <ul class="not-prose flex flex-wrap justify-start gap-2 mt-8">
         {post.categories.map((c: any) => (
           <li>
             <a
