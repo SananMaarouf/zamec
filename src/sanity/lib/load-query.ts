@@ -1,5 +1,5 @@
-import { type QueryParams } from "sanity";
-import { sanityClient } from "sanity:client";
+import { type QueryParams } from "@sanity/client";
+import { sanityClient } from "@/sanity/lib/client";
 
 // `defineQuery` from `groq` returns a branded string carrying the result type.
 // Using a narrow signature here lets TypeGen-generated `SanityValues` flow
