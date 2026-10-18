@@ -1,6 +1,6 @@
 # Astro × Sanity × i18n Starter
 
-A template for multilingual static websites using **Astro 6**, **Sanity 5**, and
+A template for multilingual static websites using **Astro 7**, **Sanity 6**, and
 **TypeScript**.
 
 This README is written to be useful both for:
@@ -49,7 +49,7 @@ Studio opens at <http://localhost:3333> (or use the hosted Sanity Studio at mana
 
 Install before starting:
 
-1. **Node.js 20+**
+1. **Node.js 22.22+** (required by Astro 7 and Sanity 6; the image builds on `node:24-alpine`)
 2. **npm 10+** (bundled with modern Node)
 3. **Sanity account** (free tier is fine)
 4. **Git**

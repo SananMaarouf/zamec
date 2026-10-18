@@ -6,7 +6,8 @@ dist/
 schema.json
 types/
 
-# scaffolded sanity studio (we use this repo's studio at /studio)
+# scaffolded sanity studio (this repo runs its own Studio via `npm run sanity:dev`,
+# it is not embedded in an Astro route)
 .sanity/
 
 # dependencies
