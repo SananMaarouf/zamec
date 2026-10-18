@@ -42,10 +42,6 @@ interface NavbarProps {
     title: string;
   };
   menu?: MenuItem[];
-  linkBtn?: {
-    title: string;
-    url: string;
-  };
   children?: ReactNode;
   mobileExtras?: ReactNode;
 }
@@ -60,7 +56,7 @@ const navLinkClassName =
 // themselves stay left-aligned with each other. The shared classes live in
 // `mobile-nav-styles.ts`.
 
-const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProps) => {
+const Navbar = ({ logo, menu = [], children, mobileExtras }: NavbarProps) => {
   return (
     <section
       id="site-navbar"
@@ -86,11 +82,6 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
                 </NavigationMenuList>
               </NavigationMenu>
             )}
-            {/* {linkBtn && (
-              <a href={linkBtn.url} className={navLinkClassName}>
-                {linkBtn.title}
-              </a>
-            )} */}
           </div>
         </nav>
 
@@ -126,11 +117,6 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
                   )}
 
                   <div className="flex w-full flex-col items-stretch gap-8">
-                    {linkBtn && (
-                      <a href={linkBtn.url} className={mobileSheetLinkClassName}>
-                        {linkBtn.title}
-                      </a>
-                    )}
                     {/* Language entries and the theme switch sit directly in
                         the menu — both are self-explanatory, so they need no
                         accordion row of their own. */}

@@ -24,13 +24,11 @@ const UI_STRINGS = {
   notFoundTitle: { en: "This page isn’t here", nb: "Denne siden finnes ikke" },
   /** Body copy of the 404 page, under the headline. */
   notFoundMessage: {
-    en: "The link may be out of date, or the page may have moved. Try the front page, or browse everything I’ve written.",
-    nb: "Lenken kan være utdatert, eller siden kan ha flyttet. Prøv forsiden, eller se alt jeg har skrevet.",
+    en: "The link may be out of date, or the page may have moved. Everything I’ve written is on the front page.",
+    nb: "Lenken kan være utdatert, eller siden kan ha flyttet. Alt jeg har skrevet ligger på forsiden.",
   },
   /** Primary action on the 404 page: back to the front page. */
   notFoundHome: { en: "Front page", nb: "Forsiden" },
-  /** Secondary action on the 404 page: the posts index. */
-  notFoundPosts: { en: "Browse posts", nb: "Se alle innlegg" },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type UIStringKey = keyof typeof UI_STRINGS;

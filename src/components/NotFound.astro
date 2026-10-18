@@ -9,10 +9,9 @@ interface Props {
 const { locale } = Astro.props;
 
 const homeHref = localizedPath(locale, "/");
-const postsHref = localizedPath(locale, "/posts");
 
 // Matches the shadcn button variants in `src/components/ui/button.tsx` so the
-// static page does not need to ship the React button just for two links.
+// static page does not need to ship the React button just for one link.
 const buttonBase =
   "inline-flex h-10 items-center justify-center rounded-md px-6 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
 ---
@@ -33,15 +32,6 @@ const buttonBase =
   <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
     <a href={homeHref} class:list={[buttonBase, "bg-primary text-primary-foreground hover:bg-primary/90"]}>
       {uiText("notFoundHome", locale)}
-    </a>
-    <a
-      href={postsHref}
-      class:list={[
-        buttonBase,
-        "border border-border bg-background text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground",
-      ]}
-    >
-      {uiText("notFoundPosts", locale)}
     </a>
   </div>
 </section>
