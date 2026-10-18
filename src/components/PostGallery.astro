@@ -91,6 +91,7 @@ const items = (
           .url();
       return {
         href: localizedPath(locale, `/post/${post.slug}`),
+        title: post.title ?? "",
         alt: image.alt ?? post.title ?? "",
         src: url(800),
         small: url(400),
@@ -101,6 +102,7 @@ const items = (
   )
 ).filter(Boolean) as Array<{
   href: string;
+  title: string;
   alt: string;
   src: string;
   small: string;
@@ -144,6 +146,12 @@ const items = (
   html.has-reveal [data-post-card].is-loaded img[data-lazy-img] {
     opacity: 1;
   }
+  /* The title strip starts one full height below the tile, so it is already
+     out of the way on the first paint and needs no JS to stay hidden. GSAP
+     takes the transform over from here and slides it up on hover. */
+  [data-card-panel] {
+    transform: translateY(100%);
+  }
 </style>
 
 {
@@ -156,7 +164,7 @@ const items = (
         <a
           href={item.href}
           data-post-card
-          class="group relative block overflow-hidden rounded-lg border border-border bg-card bg-cover bg-center shadow-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          class="group relative block overflow-hidden rounded-lg border border-border bg-card bg-cover bg-center shadow-sm transition-[scale,translate,box-shadow] duration-200 data-[active=true]:z-10 data-[active=true]:-translate-y-1 data-[active=true]:scale-[1.04] data-[active=true]:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           style={item.lqip ? `background-image:url("${item.lqip}")` : undefined}
         >
           <img
@@ -170,7 +178,7 @@ const items = (
             loading={index === 0 ? "eager" : "lazy"}
             fetchpriority={index === 0 ? "high" : undefined}
             decoding="async"
-            class="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            class="aspect-square w-full object-cover"
           />
           <noscript>
             <img
@@ -183,6 +191,25 @@ const items = (
               class="absolute inset-0 aspect-square w-full object-cover"
             />
           </noscript>
+          <span
+            data-card-panel
+            class="pointer-events-none absolute inset-x-0 bottom-0 flex min-h-[4.5rem] items-center justify-between gap-3 border-t border-border/60 bg-card/95 px-4 py-4 text-sm font-medium text-card-foreground backdrop-blur-sm"
+          >
+            <span class="min-w-0 truncate">{item.title}</span>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-4 shrink-0"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          </span>
         </a>
       ))}
     </div>
@@ -234,7 +261,70 @@ const items = (
     );
     cards.forEach((card) => loader.observe(card));
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // ── Hover state ───────────────────────────────────────────────────────
+    // One pointer state drives both the lift/zoom of the whole tile and the
+    // title strip sliding up over the photo. Driven from JS rather than a CSS
+    // `:hover` rule for two reasons: it also fires on a tap and on keyboard
+    // focus, and the raise is a data-attribute variant, which is not gated by
+    // `@media (hover: hover)` the way Tailwind's `hover:` variants are.
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    for (const card of cards) {
+      const panel = card.querySelector<HTMLElement>("[data-card-panel]");
+      if (!panel) continue;
+      const arrow = panel.querySelector<SVGElement>("svg");
+
+      // Same start state as the CSS, now owned by GSAP's transform. `y: 0`
+      // first: GSAP reads the stylesheet's translateY(100%) as a pixel offset
+      // and yPercent would stack on top of it, leaving the strip half out.
+      gsap.set(panel, { y: 0, yPercent: 100 });
+
+      const show = () => {
+        card.dataset.active = "true";
+        gsap.to(panel, {
+          yPercent: 0,
+          duration: reduceMotion ? 0 : 0.32,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+        if (arrow)
+          gsap.to(arrow, {
+            x: 3,
+            duration: reduceMotion ? 0 : 0.32,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+      };
+      const hide = () => {
+        delete card.dataset.active;
+        gsap.to(panel, {
+          yPercent: 100,
+          duration: reduceMotion ? 0 : 0.24,
+          ease: "power2.in",
+          overwrite: "auto",
+        });
+        if (arrow)
+          gsap.to(arrow, {
+            x: 0,
+            duration: reduceMotion ? 0 : 0.24,
+            ease: "power2.in",
+            overwrite: "auto",
+          });
+      };
+
+      card.addEventListener("pointerenter", show);
+      card.addEventListener("pointerleave", hide);
+      // Keyboard users get the same strip, but only for real focus-visible
+      // focus, not the focus a mouse click leaves behind.
+      card.addEventListener("focus", () => {
+        if (card.matches(":focus-visible")) show();
+      });
+      card.addEventListener("blur", hide);
+    }
+
+    if (reduceMotion) {
       // No animation at all: drop the pre-paint hiding and let the gate above
       // fetch the tiles as the browser scrolls.
       document.documentElement.classList.remove("has-reveal");
@@ -265,6 +355,14 @@ const items = (
           // row follows a beat later.
           delay,
           overwrite: "auto",
+          // GSAP parks `translate/scale` as inline `none` on every tile it has
+          // touched, which would outrank the CSS hover pose below. Hand the
+          // transform back to the stylesheet once the tile has landed; opacity
+          // stays inline, so the reveal still owns that.
+          onComplete: () =>
+            gsap.set(card, {
+              clearProps: "transform,translate,scale,rotate",
+            }),
         });
 
       const exit = (card: HTMLElement) =>
