@@ -5,11 +5,12 @@ import { uiText } from "@/lib/ui-strings";
 /**
  * Image strip for a post's gallery.
  *
- * Mobile keeps the compact two-column grid. From `sm` up it is a sideways
- * scrolling strip that shows three tiles at a time; with more than three
- * images the strip is sized so the next tile peeks in at the right edge, and
- * a pair of arrow controls appears above it — a mouse wheel cannot scroll a
- * horizontal area, so the arrows are the desktop affordance.
+ * One sideways scrolling strip at every width: one tile at a time on a phone,
+ * three on a desktop row. The tiles are sized so the next one always peeks in
+ * at the right edge — the cue that there is more to scroll — and a pair of
+ * arrow controls appears above the strip when a post has more images than one
+ * desktop row holds (a mouse wheel cannot scroll a horizontal area, so the
+ * arrows matter most on desktop; on a phone the strip is swiped).
  *
  * Every tile stays a lightbox trigger (`data-lightbox-src`), so the viewer in
  * `PostPage.astro` walks the images in the order they appear here.
@@ -21,29 +22,36 @@ interface Props {
 
 const { images, locale } = Astro.props;
 
-const VISIBLE_TILES = 3;
+/** Tiles across on a desktop row; the phone strip shows one at a time. */
+const DESKTOP_TILES = 3;
 
-const scrollable = images.length > VISIBLE_TILES;
+/** A post with a single gallery image has nothing to scroll. */
+const single = images.length === 1;
+
+/** Arrow controls, for posts with more images than one desktop row shows. */
+const scrollable = images.length > DESKTOP_TILES;
 
 /*
- * Desktop tile width, as a share of the track. The numbers are spelled out
- * (rather than computed) because Tailwind only emits a class it can find as
- * literal text in the source:
- *   more than three images → 3 tiles + 3 × 0.75rem gap + a 2.5rem peek fill
- *                            the row, so the fourth tile is cut off by exactly
- *                            the peek
- *   three or fewer         → 3 tiles + the 2 × 0.75rem gap between them fill
- *                            the row
+ * Tile width, as a share of the track. The pattern is
+ * (100% - tiles × 0.75rem gap - peek) / tiles, so that `tiles` tiles, their
+ * gaps and the peek exactly fill the row and the next tile is cut off by the
+ * peek. The numbers are spelled out rather than computed because Tailwind only
+ * emits a class it can read as literal text in the source:
+ *   phone   → 1 tile + 0.75rem gap + 3rem peek; a lone image just fills the row
+ *   desktop → 3 tiles + 3 × 0.75rem gap + 2.5rem peek when there is a fourth,
+ *             otherwise 3 tiles + the 2 gaps between them
  */
-const tileWidth = scrollable
-  ? "sm:w-[calc((100%-4.75rem)/3)]" // 3 × 0.75rem gap + 2.5rem peek
-  : "sm:w-[calc((100%-1.5rem)/3)]"; // 2 × 0.75rem gap
+const tileWidth = [
+  single ? "w-full" : "w-[calc(100%-3.75rem)]",
+  scrollable ? "sm:w-[calc((100%-4.75rem)/3)]" : "sm:w-[calc((100%-1.5rem)/3)]",
+].join(" ");
 
 const scrollPreviousLabel = uiText("galleryScrollPrevious", locale);
 const scrollNextLabel = uiText("galleryScrollNext", locale);
 
+/* Touch-friendly on a phone, compact from the desktop breakpoint up. */
 const controlClass =
-  "inline-flex size-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40";
+  "inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 sm:size-8";
 
 const tileClass =
   "block w-full cursor-zoom-in overflow-hidden rounded-lg border border-border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -52,7 +60,7 @@ const tileClass =
 <div class="not-prose mb-8" data-gallery>
   {
     scrollable && (
-      <div class="mb-2 hidden justify-end gap-2 sm:flex">
+      <div class="mb-2 flex justify-end gap-2">
         <button type="button" data-gallery-prev aria-label={scrollPreviousLabel} class={controlClass}>
           <svg
             viewBox="0 0 24 24"
@@ -87,11 +95,11 @@ const tileClass =
 
   <ul
     data-gallery-track
-    class="m-0 grid list-none grid-cols-2 gap-2 p-0 sm:flex sm:snap-x sm:snap-proximity sm:gap-3 sm:overflow-x-auto sm:pb-2 sm:[scrollbar-width:thin]"
+    class="m-0 flex list-none snap-x snap-proximity gap-3 overflow-x-auto p-0 pb-2 [scrollbar-width:thin]"
   >
     {
       images.map((image) => (
-        <li class={`sm:flex-none sm:snap-start ${tileWidth}`}>
+        <li class={`flex-none snap-start ${tileWidth}`}>
           <button
             type="button"
             data-lightbox-src={image.full}
