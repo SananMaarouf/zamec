@@ -1,11 +1,16 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import NotFound from "@/components/NotFound.astro";
-import { DEFAULT_LOCALE } from "@/sanity/lib/locale";
+import { resolveLocale } from "@/sanity/lib/locale";
 
 // Astro emits `src/pages/404.astro` as `dist/404.html`, which `nginx.conf`
-// serves from `error_page 404`. Everything else on this page is a normal layout.
-const locale = DEFAULT_LOCALE;
+// serves from `error_page 404`, with `/nb/*` 404s mapped to `dist/nb/404`.
+//
+// At build time there is no request, so `Astro.currentLocale` is undefined and
+// this renders the English page. During `astro dev` there is a request, so an
+// unknown `/nb/...` URL picks up the Norwegian copy instead of falling back to
+// English locally.
+const locale = resolveLocale(Astro.currentLocale);
 ---
 <Layout locale={locale} title="404" noindex>
   <NotFound locale={locale} />
