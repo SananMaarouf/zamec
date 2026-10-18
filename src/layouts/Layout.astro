@@ -88,11 +88,7 @@ const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
       image={image}
       path={path}
     />
-    {
-      themeCss && (
-        <style is:inline set:html={themeCss} />
-      )
-    }
+    {themeCss && <style is:inline set:html={themeCss} />}
     <script is:inline>
       const theme =
         localStorage.getItem("theme") ||

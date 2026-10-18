@@ -86,11 +86,11 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
                 </NavigationMenuList>
               </NavigationMenu>
             )}
-            {linkBtn && (
+            {/* {linkBtn && (
               <a href={linkBtn.url} className={navLinkClassName}>
                 {linkBtn.title}
               </a>
-            )}
+            )} */}
           </div>
         </nav>
 
