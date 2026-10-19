@@ -9,12 +9,6 @@ export const navigationType = defineType({
   description: DOCUMENT_GUIDES.navigation,
   fields: [
     defineField({
-      name: "title",
-      type: "string",
-      description: "Internal label for editors (not rendered).",
-      validation: (rule) => rule.required(),
-    }),
-    defineField({
       name: "items",
       type: "array",
       of: [
@@ -61,4 +55,8 @@ export const navigationType = defineType({
       ],
     }),
   ],
+  preview: {
+    // Singleton: the form header uses this as the pane heading.
+    prepare: () => ({ title: DOCUMENT_GUIDES.navigation }),
+  },
 });

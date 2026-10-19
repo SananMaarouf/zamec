@@ -154,7 +154,7 @@ Studio opens at <http://localhost:3333>. The layout expects singleton content â€
 | Document type | Why it matters | Minimum fields to fill |
 |---|---|---|
 | `Site Settings` | Global title + nav reference + SEO defaults | `title` (`en`, `nb`), `primaryNav` reference |
-| `Navigation` | Main menu rendering | `title`, at least 1 `items[]` row with `label` + (`href` or `internalRef`) |
+| `Navigation` | Main menu rendering | at least 1 `items[]` row with `label` + (`href` or `internalRef`) |
 | `Footer` | Footer text/contact section | `address` (`en`, `nb`) and/or `copyright` |
 | `Theme` | Site color palette (light + dark) and the two Google Fonts | nothing â€” every color and font starts at the template default |
 

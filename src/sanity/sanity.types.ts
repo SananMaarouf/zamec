@@ -264,7 +264,6 @@ export type Navigation = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  title?: string;
   items?: Array<{
     label?: InternationalizedArrayString;
     href?: string;
