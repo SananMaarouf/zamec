@@ -7,6 +7,7 @@ services:
         PUBLIC_SANITY_PROJECT_ID: "${PUBLIC_SANITY_PROJECT_ID}"
         PUBLIC_SANITY_DATASET: "${PUBLIC_SANITY_DATASET}"
         PUBLIC_SITE_URL: "${PUBLIC_SITE_URL}"
+        FORMSPREE_URL: "${FORMSPREE_URL}"
     # nginx-unprivileged listens on 8080 inside the container
     ports:
       - "8080:8080"

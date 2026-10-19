@@ -429,6 +429,7 @@ Sanity webhook ─┴─▶ GitHub Actions (deploy.yml)
 | `PUBLIC_SANITY_PROJECT_ID` | Baked into the build (public) |
 | `PUBLIC_SANITY_DATASET` | Baked into the build (public) |
 | `PUBLIC_SITE_URL` | Canonical origin, e.g. `https://zamec.no` |
+| `FORMSPREE_URL` | Contact form endpoint, e.g. `https://formspree.io/f/xxxxxxx` (public, baked into the build) |
 | `DOKPLOY_DEPLOY_HOOK_URL` | Application deploy hook |
 | `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` | Cloudflare Access service token for the hook |
 
