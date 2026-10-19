@@ -30,7 +30,7 @@ export const POST_BY_SLUG_QUERY = defineQuery(`
       "title": coalesce(title[language == $locale][0].value, title[0].value),
       "slug":  slug.current
     },
-    // Neighbours in the listing order used by the index and the category/author
+    // Neighbours in the listing order used by the index and the category
     // pages (publishedAt desc, _id asc), so walking the links walks the site's
     // own sequence: "previous" is the entry before this post (newer), "next"
     // the one after it (older). The _id comparisons break ties for posts that
@@ -85,30 +85,6 @@ export const CATEGORY_BY_SLUG_QUERY = defineQuery(`
     "title":       coalesce(title[language == $locale][0].value, title[0].value),
     "description": coalesce(description[language == $locale][0].value, description[0].value),
     "slug":        slug.current,
-    "posts": *[_type == "post" && references(^._id)
-      && count(title[language == $locale && value != null]) > 0]
-      | order(publishedAt desc, _id asc){
-      "title":     coalesce(title[language == $locale][0].value, title[0].value),
-      "slug":      slug.current,
-      publishedAt,
-      mainImage{ asset, alt },
-      images[]{ asset, alt }
-    }
-  }
-`);
-
-// ───── Authors ─────────────────────────────────────────────────────────────
-
-export const AUTHOR_SLUGS_QUERY = defineQuery(`
-  *[_type == "author" && defined(slug.current)]{ "slug": slug.current }
-`);
-
-export const AUTHOR_BY_SLUG_QUERY = defineQuery(`
-  *[_type == "author" && slug.current == $slug][0]{
-    name,
-    "slug": slug.current,
-    image,
-    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),
     "posts": *[_type == "post" && references(^._id)
       && count(title[language == $locale && value != null]) > 0]
       | order(publishedAt desc, _id asc){

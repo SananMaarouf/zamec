@@ -24,11 +24,6 @@ export const postType = defineType({
       },
     }),
     defineField({
-      name: "author",
-      type: "reference",
-      to: { type: "author" },
-    }),
-    defineField({
       name: "mainImage",
       title: "Cover image",
       type: "image",
@@ -83,16 +78,15 @@ export const postType = defineType({
   preview: {
     select: {
       titles: "title",
-      author: "author.name",
       media: "coalesce(mainImage, images[0])",
     },
     prepare(selection) {
-      const { titles, author } = selection;
+      const { titles } = selection;
       // Extract the first title from the internationalized array
       const title = Array.isArray(titles) && titles.length > 0
         ? titles[0].value
         : "Untitled";
-      return { title, subtitle: author && `by ${author}`, media: selection.media };
+      return { title, media: selection.media };
     },
   },
 });

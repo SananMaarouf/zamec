@@ -37,7 +37,7 @@ Studio opens at <http://localhost:3333> (or use the hosted Sanity Studio at mana
 - Localized Sanity fields via `sanity-plugin-internationalized-array`
 - Centralized, typed GROQ queries in `src/sanity/lib/queries.ts`
 - Prebuilt schemas: `siteSettings`, `navigation`, `footer`, `page`,
-  `post`, `category`, `author`, `theme`, and `blockContent`
+  `post`, `category`, `theme`, and `blockContent`
 - CMS-driven color palette: clients edit the light/dark theme tokens in the
   Studio instead of touching `src/styles/global.css` (see
   [Theme: colors and fonts from the CMS](#theme-colors-and-fonts-from-the-cms))
@@ -159,7 +159,7 @@ Studio opens at <http://localhost:3333>. The layout expects singleton content â€
 | `Theme` | Site color palette (light + dark) and the two Google Fonts | nothing â€” every color and font starts at the template default |
 
 Optional but recommended:
-- `post`, `author`, and `category` to validate list/detail routes
+- `post` and `category` to validate list/detail routes
 - `page` to validate CMS-driven `/{locale}/[page]` routes
 
 Publish all documents in Studio, then move on.

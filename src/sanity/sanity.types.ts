@@ -306,13 +306,6 @@ export type Slug = {
   source?: string;
 };
 
-export type AuthorReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "author";
-};
-
 export type Post = {
   _id: string;
   _type: "post";
@@ -321,7 +314,6 @@ export type Post = {
   _rev: string;
   title?: InternationalizedArrayString;
   slug?: Slug;
-  author?: AuthorReference;
   mainImage?: {
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -401,25 +393,6 @@ export type BlockContent = Array<
       _key: string;
     }
 >;
-
-export type Author = {
-  _id: string;
-  _type: "author";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  name?: string;
-  slug?: Slug;
-  image?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  };
-  bio?: InternationalizedArrayBlockContent;
-};
 
 export type InternationalizedArrayBlockContentValue = {
   _type: "internationalizedArrayBlockContentValue";
@@ -554,12 +527,10 @@ export type AllSanitySchemaTypes =
   | Page
   | InternationalizedArrayBlockContent
   | Slug
-  | AuthorReference
   | Post
   | Footer
   | Category
   | BlockContent
-  | Author
   | InternationalizedArrayBlockContentValue
   | InternationalizedArrayTextValue
   | InternationalizedArrayStringValue
@@ -581,7 +552,7 @@ export type POST_SLUGS_QUERY_RESULT = Array<{
 
 // Source: src/sanity/lib/queries.ts
 // Variable: POST_BY_SLUG_QUERY
-// Query: *[_type == "post" && slug.current == $slug][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "body":        coalesce(body[language == $locale][0].value,  body[0].value),    publishedAt,    mainImage{ asset, alt },    images[]{ asset, alt },    "categories": categories[]->{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    },    // Neighbours in the listing order used by the index and the category/author    // pages (publishedAt desc, _id asc), so walking the links walks the site's    // own sequence: "previous" is the entry before this post (newer), "next"    // the one after it (older). The _id comparisons break ties for posts that    // share one timestamp — without them whole groups of same-day posts would    // have no neighbours at all.    "previousPost": *[      _type == "post"      && count(title[language == $locale && value != null]) > 0      && defined(publishedAt)      && defined(^.publishedAt)      && (publishedAt > ^.publishedAt          || (publishedAt == ^.publishedAt && _id < ^._id))    ] | order(publishedAt asc, _id desc)[0]{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    },    "nextPost": *[      _type == "post"      && count(title[language == $locale && value != null]) > 0      && defined(publishedAt)      && defined(^.publishedAt)      && (publishedAt < ^.publishedAt          || (publishedAt == ^.publishedAt && _id > ^._id))    ] | order(publishedAt desc, _id asc)[0]{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    }  }
+// Query: *[_type == "post" && slug.current == $slug][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "body":        coalesce(body[language == $locale][0].value,  body[0].value),    publishedAt,    mainImage{ asset, alt },    images[]{ asset, alt },    "categories": categories[]->{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    },    // Neighbours in the listing order used by the index and the category    // pages (publishedAt desc, _id asc), so walking the links walks the site's    // own sequence: "previous" is the entry before this post (newer), "next"    // the one after it (older). The _id comparisons break ties for posts that    // share one timestamp — without them whole groups of same-day posts would    // have no neighbours at all.    "previousPost": *[      _type == "post"      && count(title[language == $locale && value != null]) > 0      && defined(publishedAt)      && defined(^.publishedAt)      && (publishedAt > ^.publishedAt          || (publishedAt == ^.publishedAt && _id < ^._id))    ] | order(publishedAt asc, _id desc)[0]{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    },    "nextPost": *[      _type == "post"      && count(title[language == $locale && value != null]) > 0      && defined(publishedAt)      && defined(^.publishedAt)      && (publishedAt < ^.publishedAt          || (publishedAt == ^.publishedAt && _id > ^._id))    ] | order(publishedAt desc, _id asc)[0]{      "title": coalesce(title[language == $locale][0].value, title[0].value),      "slug":  slug.current    }  }
 export type POST_BY_SLUG_QUERY_RESULT = {
   title: string | null;
   body: BlockContent | null;
@@ -639,43 +610,6 @@ export type CATEGORY_BY_SLUG_QUERY_RESULT = {
   title: string | null;
   description: string | null;
   slug: string | null;
-  posts: Array<{
-    title: string | null;
-    slug: string | null;
-    publishedAt: string | null;
-    mainImage: {
-      asset: SanityImageAssetReference | null;
-      alt: string | null;
-    } | null;
-    images: Array<{
-      asset: SanityImageAssetReference | null;
-      alt: string | null;
-    }> | null;
-  }>;
-} | null;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: AUTHOR_SLUGS_QUERY
-// Query: *[_type == "author" && defined(slug.current)]{ "slug": slug.current }
-export type AUTHOR_SLUGS_QUERY_RESULT = Array<{
-  slug: string | null;
-}>;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: AUTHOR_BY_SLUG_QUERY
-// Query: *[_type == "author" && slug.current == $slug][0]{    name,    "slug": slug.current,    image,    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),    "posts": *[_type == "post" && references(^._id)      && count(title[language == $locale && value != null]) > 0]      | order(publishedAt desc, _id asc){      "title":     coalesce(title[language == $locale][0].value, title[0].value),      "slug":      slug.current,      publishedAt,      mainImage{ asset, alt },      images[]{ asset, alt }    }  }
-export type AUTHOR_BY_SLUG_QUERY_RESULT = {
-  name: string | null;
-  slug: string | null;
-  image: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  } | null;
-  bio: BlockContent | null;
   posts: Array<{
     title: string | null;
     slug: string | null;
@@ -778,12 +712,10 @@ export type THEME_QUERY_RESULT = {
 declare global {
   interface SanityQueries {
     '\n  *[_type == "post" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': POST_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "post" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "body":        coalesce(body[language == $locale][0].value,  body[0].value),\n    publishedAt,\n    mainImage{ asset, alt },\n    images[]{ asset, alt },\n    "categories": categories[]->{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    },\n    // Neighbours in the listing order used by the index and the category/author\n    // pages (publishedAt desc, _id asc), so walking the links walks the site\'s\n    // own sequence: "previous" is the entry before this post (newer), "next"\n    // the one after it (older). The _id comparisons break ties for posts that\n    // share one timestamp \u2014 without them whole groups of same-day posts would\n    // have no neighbours at all.\n    "previousPost": *[\n      _type == "post"\n      && count(title[language == $locale && value != null]) > 0\n      && defined(publishedAt)\n      && defined(^.publishedAt)\n      && (publishedAt > ^.publishedAt\n          || (publishedAt == ^.publishedAt && _id < ^._id))\n    ] | order(publishedAt asc, _id desc)[0]{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    },\n    "nextPost": *[\n      _type == "post"\n      && count(title[language == $locale && value != null]) > 0\n      && defined(publishedAt)\n      && defined(^.publishedAt)\n      && (publishedAt < ^.publishedAt\n          || (publishedAt == ^.publishedAt && _id > ^._id))\n    ] | order(publishedAt desc, _id asc)[0]{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    }\n  }\n': POST_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "post" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "body":        coalesce(body[language == $locale][0].value,  body[0].value),\n    publishedAt,\n    mainImage{ asset, alt },\n    images[]{ asset, alt },\n    "categories": categories[]->{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    },\n    // Neighbours in the listing order used by the index and the category\n    // pages (publishedAt desc, _id asc), so walking the links walks the site\'s\n    // own sequence: "previous" is the entry before this post (newer), "next"\n    // the one after it (older). The _id comparisons break ties for posts that\n    // share one timestamp \u2014 without them whole groups of same-day posts would\n    // have no neighbours at all.\n    "previousPost": *[\n      _type == "post"\n      && count(title[language == $locale && value != null]) > 0\n      && defined(publishedAt)\n      && defined(^.publishedAt)\n      && (publishedAt > ^.publishedAt\n          || (publishedAt == ^.publishedAt && _id < ^._id))\n    ] | order(publishedAt asc, _id desc)[0]{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    },\n    "nextPost": *[\n      _type == "post"\n      && count(title[language == $locale && value != null]) > 0\n      && defined(publishedAt)\n      && defined(^.publishedAt)\n      && (publishedAt < ^.publishedAt\n          || (publishedAt == ^.publishedAt && _id > ^._id))\n    ] | order(publishedAt desc, _id asc)[0]{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":  slug.current\n    }\n  }\n': POST_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "post" && count(title[language == $locale && value != null]) > 0]\n    | order(publishedAt desc, _id asc){\n    "title":     coalesce(title[language == $locale][0].value, title[0].value),\n    "slug":      slug.current,\n    publishedAt,\n    mainImage{ asset, alt },\n    images[]{ asset, alt }\n  }\n': POSTS_INDEX_QUERY_RESULT;
     '\n  *[_type == "category" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': CATEGORY_SLUGS_QUERY_RESULT;
     '\n  *[_type == "category" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    "slug":        slug.current,\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc, _id asc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt },\n      images[]{ asset, alt }\n    }\n  }\n': CATEGORY_BY_SLUG_QUERY_RESULT;
-    '\n  *[_type == "author" && defined(slug.current)]{ "slug": slug.current }\n': AUTHOR_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "author" && slug.current == $slug][0]{\n    name,\n    "slug": slug.current,\n    image,\n    "bio": coalesce(bio[language == $locale][0].value, bio[0].value),\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc, _id asc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt },\n      images[]{ asset, alt }\n    }\n  }\n': AUTHOR_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "page" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': PAGE_SLUGS_QUERY_RESULT;
     '\n  *[_type == "page" && slug.current == $slug][0]{\n    "title":          coalesce(title[language == $locale][0].value, title[0].value),\n    "body":           coalesce(body[language == $locale][0].value, body[0].value),\n    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),\n    "slug":           slug.current,\n    ogImage\n  }\n': PAGE_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    siteUrl,\n    ogImage,\n    "primaryNav": primaryNav->{\n      items[]{\n        "label": coalesce(label[language == $locale][0].value, label[0].value),\n        href,\n        "internalRef": internalRef->{ _type, "slug": slug.current }\n      }\n    }\n  }\n': SITE_SETTINGS_QUERY_RESULT;

@@ -1,6 +1,5 @@
 import type { SchemaTypeDefinition } from "sanity";
 
-import { authorType } from "./author";
 import { blockContentType } from "./blockContent";
 import { categoryType } from "./category";
 import { footerType } from "./footer";
@@ -12,7 +11,6 @@ import { themeFontsType, themePaletteType, themeType } from "./theme";
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
-    authorType,
     blockContentType,
     categoryType,
     footerType,
