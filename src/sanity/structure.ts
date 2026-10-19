@@ -48,7 +48,7 @@ const singleton = (
   S.listItem()
     .title(title)
     .id(type)
-    .child(S.document().schemaType(type).documentId(type));
+    .child(S.document().schemaType(type).documentId(type).title(title));
 
 export const structure: StructureResolver = (S) =>
   S.list()
@@ -62,6 +62,7 @@ export const structure: StructureResolver = (S) =>
           S.document()
             .schemaType("navigation")
             .documentId(await existingDocumentId("navigation"))
+            .title("Navigation")
         ),
       singleton(S, "theme", "Theme"),
       singleton(S, "footer", "Footer"),
