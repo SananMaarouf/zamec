@@ -1,10 +1,18 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import Landing from "@/components/Landing.astro";
+import PostGallery from "@/components/PostGallery.astro";
+import { loadQuery } from "@/sanity/lib/load-query";
+import { POSTS_INDEX_QUERY } from "@/sanity/lib/queries";
 import { DEFAULT_LOCALE } from "@/sanity/lib/locale";
 
 const locale = DEFAULT_LOCALE;
+const { data: posts } = await loadQuery<any[]>({
+  query: POSTS_INDEX_QUERY,
+  params: { locale },
+});
 ---
 <Layout locale={locale} path="/">
-  <Landing locale={locale} />
+  <section class="container mx-auto px-4 py-10">
+    <PostGallery posts={posts ?? []} locale={locale} />
+  </section>
 </Layout>

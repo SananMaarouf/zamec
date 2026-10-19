@@ -1,0 +1,56 @@
+---
+/**
+ * GB / Norway flag for a locale.
+ *
+ * Both flags are cropped into their box with `preserveAspectRatio="slice"`
+ * (what flag-icon libraries do) so they render at one consistent size despite
+ * having different aspect ratios. The flag is decorative — the link next to it
+ * carries the language name, so screen readers skip the SVG.
+ */
+interface Props {
+  locale: string;
+  class?: string;
+}
+
+const { locale, class: className = "" } = Astro.props;
+
+// Unique per instance: the same flag can appear twice on a page (desktop bar
+// and mobile sheet), and clipPath ids must not collide.
+const clipId = `flag-clip-${locale}-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+{
+  locale === "en" ? (
+    <svg
+      viewBox="0 0 60 30"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      class={className}
+    >
+      <clipPath id={clipId}>
+        <path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z" />
+      </clipPath>
+      <path d="M0,0 v30 h60 v-30 z" fill="#012169" />
+      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#ffffff" stroke-width="6" />
+      <path
+        d="M0,0 L60,30 M60,0 L0,30"
+        clip-path={`url(#${clipId})`}
+        stroke="#C8102E"
+        stroke-width="4"
+      />
+      <path d="M30,0 v30 M0,15 h60" stroke="#ffffff" stroke-width="10" />
+      <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6" />
+    </svg>
+  ) : (
+    <svg
+      viewBox="0 0 22 16"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      class={className}
+    >
+      <path d="M0 0h22v16H0z" fill="#ba0c2f" />
+      <path d="M6 0h4v16H6zM0 6h22v4H0z" fill="#ffffff" />
+      <path d="M7 0h2v16H7zM0 7h22v2H0z" fill="#00205b" />
+    </svg>
+  )
+}

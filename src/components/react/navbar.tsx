@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  mobileSheetLinkClassName,
+  mobileSheetTriggerClassName,
+} from "./mobile-nav-styles";
 import {
   Accordion,
   AccordionContent,
@@ -22,7 +27,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ThemeSwitcher, ThemeSwitcherMobile } from "./theme-switcher";
+import { ThemeSwitch } from "./theme-switcher";
 
 export interface MenuItem {
   title: string;
@@ -34,20 +39,24 @@ export interface MenuItem {
 interface NavbarProps {
   logo: {
     url: string;
-    src: string;
-    alt: string;
     title: string;
   };
   menu?: MenuItem[];
-  linkBtn?: {
-    title: string;
-    url: string;
-  };
   children?: ReactNode;
   mobileExtras?: ReactNode;
 }
 
-const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProps) => {
+// Shared by every plain nav entry — including the trailing `linkBtn` — so the
+// last link reads as one of the menu links instead of a primary-colored CTA.
+const navLinkClassName =
+  "bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors";
+
+// The mobile sheet is the only navigation on small screens: its entries sit in
+// a content-width column that is centered in the sheet, while the labels
+// themselves stay left-aligned with each other. The shared classes live in
+// `mobile-nav-styles.ts`.
+
+const Navbar = ({ logo, menu = [], children, mobileExtras }: NavbarProps) => {
   return (
     <section
       id="site-navbar"
@@ -55,100 +64,64 @@ const Navbar = ({ logo, menu = [], linkBtn, children, mobileExtras }: NavbarProp
     >
       <div className="container">
         {/* Desktop Menu */}
-        <nav className="hidden justify-between gap-3 lg:flex">
-          <div className="flex items-center w-full">
-            <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
-              <span className="text-lg font-semibold tracking-tighter whitespace-nowrap">
-                {logo.title}
-              </span>
-            </a>
+        <nav className="hidden items-center justify-between gap-3 lg:flex">
+          <a href={logo.url} className="flex items-center">
+            <span className="text-lg font-semibold tracking-tighter whitespace-nowrap">
+              {logo.title}
+            </span>
+          </a>
+          {/* Switches first, then the menu links: the controls read as sitting
+              in front of the navigation. Compact (`sm`) size on desktop. */}
+          <div className="flex items-center gap-3">
+            {children}
+            <ThemeSwitch size="sm" />
             {menu.length > 0 && (
-              <div className="flex ml-auto items-center">
-                <NavigationMenu className="[&_div.absolute]:-left-8 [&_div.absolute]:top-10">
-                  <NavigationMenuList>
-                    {menu.map((item) => renderMenuItem(item))}
-                  </NavigationMenuList>
-                </NavigationMenu>
-              </div>
-            )}
-          </div>
-          <div className="flex gap-2 items-center">
-            {children && <div className="flex items-center">{children}</div>}
-            <ThemeSwitcher />
-            {linkBtn && (
-              <Button asChild size="sm">
-                <a href={linkBtn.url}>{linkBtn.title}</a>
-              </Button>
+              <NavigationMenu className="[&_div.absolute]:-left-8 [&_div.absolute]:top-10">
+                <NavigationMenuList>
+                  {menu.map((item) => renderMenuItem(item))}
+                </NavigationMenuList>
+              </NavigationMenu>
             )}
           </div>
         </nav>
 
         {/* Mobile Menu */}
         <div className="block lg:hidden">
-          <div className="flex items-center justify-between">
-            <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
-              <span className="text-lg font-semibold tracking-tighter whitespace-nowrap">
+          <div className="flex items-center justify-between gap-4">
+            <a href={logo.url} className="flex items-center">
+              <span className="text-2xl font-semibold tracking-tighter whitespace-nowrap">
                 {logo.title}
               </span>
             </a>
             <Sheet>
               <SheetTrigger asChild>
-                <Button size="icon-lg">
-                  <Menu className="size-4" />
+                <Button size="icon-lg" className="size-12">
+                  <Menu className="size-7" />
                 </Button>
               </SheetTrigger>
               <SheetContent className="overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
-                      <img
-                        src={logo.src}
-                        className="max-h-8 dark:invert"
-                        alt={logo.alt}
-                      />
-                    </a>
-                  </SheetTitle>
+                {/* Kept visually hidden: Radix needs a title for screen
+                    readers, but the mobile sheet shows no visible heading. */}
+                <SheetHeader className="sr-only">
+                  <SheetTitle>{logo.title}</SheetTitle>
                 </SheetHeader>
-                <div className="flex flex-col gap-6 p-4">
+                <div className="mx-auto flex w-fit max-w-full flex-col items-start gap-8 p-4 pt-10">
                   {menu.length > 0 && (
                     <Accordion
                       type="single"
                       collapsible
-                      className="flex w-full wrap-break-word flex-col gap-4"
+                      className="flex w-full wrap-break-word flex-col gap-8"
                     >
                       {menu.map((item) => renderMobileMenuItem(item))}
                     </Accordion>
                   )}
 
-                  <div className="flex flex-col gap-3">
-                    {linkBtn && (
-                      <Button asChild>
-                        <a href={linkBtn.url}>{linkBtn.title}</a>
-                      </Button>
-                    )}
-                    {mobileExtras && (
-                      <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value="language" className="border-b-0">
-                          <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
-                            Language
-                          </AccordionTrigger>
-                          <AccordionContent className="mt-2">
-                            {mobileExtras}
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    )}
-                    <ThemeSwitcherMobile />
+                  <div className="flex w-full flex-col items-stretch gap-8">
+                    {/* Language entries and the theme switch sit directly in
+                        the menu — both are self-explanatory, so they need no
+                        accordion row of their own. */}
+                    {mobileExtras}
+                    <ThemeSwitch />
                   </div>
                 </div>
               </SheetContent>
@@ -178,10 +151,7 @@ const renderMenuItem = (item: MenuItem) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        href={item.url}
-        className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-      >
+      <NavigationMenuLink href={item.url} className={navLinkClassName}>
         {item.title}
       </NavigationMenuLink>
     </NavigationMenuItem>
@@ -191,13 +161,17 @@ const renderMenuItem = (item: MenuItem) => {
 const renderMobileMenuItem = (item: MenuItem) => {
   if (item.items) {
     return (
-      <AccordionItem key={item.title} value={item.title} className="border-b-0">
-        <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
+      <AccordionItem
+        key={item.title}
+        value={item.title}
+        className="w-full border-b-0"
+      >
+        <AccordionTrigger className={mobileSheetTriggerClassName}>
           {item.title}
         </AccordionTrigger>
         <AccordionContent className="mt-2">
           {item.items.map((subItem) => (
-            <SubMenuLink key={subItem.title} item={subItem} />
+            <SubMenuLink key={subItem.title} item={subItem} inSheet />
           ))}
         </AccordionContent>
       </AccordionItem>
@@ -205,22 +179,32 @@ const renderMobileMenuItem = (item: MenuItem) => {
   }
 
   return (
-    <a key={item.title} href={item.url} className="text-md font-semibold">
+    <a key={item.title} href={item.url} className={mobileSheetLinkClassName}>
       {item.title}
     </a>
   );
 };
 
-const SubMenuLink = ({ item }: { item: MenuItem }) => {
+const SubMenuLink = ({
+  item,
+  inSheet = false,
+}: {
+  item: MenuItem;
+  /** Mobile sheet: fill the menu column and keep the text left-aligned. */
+  inSheet?: boolean;
+}) => {
   return (
     <a
-      className="hover:bg-muted hover:text-accent-foreground flex min-w-70
-      select-none flex-row gap-4 rounded-md p-3 leading-none
-      no-underline outline-none transition-colors"
+      className={cn(
+        "hover:bg-muted hover:text-accent-foreground flex min-w-70 select-none flex-row gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors",
+        inSheet && "w-full min-w-0 justify-start text-left",
+      )}
       href={item.url}
     >
       <div>
-        <div className="text-sm font-semibold">{item.title}</div>
+        <div className={cn("text-sm font-semibold", inSheet && "text-xl")}>
+          {item.title}
+        </div>
         {item.description && (
           <p className="text-muted-foreground text-sm leading-snug wrap-break-word whitespace-normal">
             {item.description}

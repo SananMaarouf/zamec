@@ -1,0 +1,29 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import ContactPage from "@/components/ContactPage.astro";
+import { loadQuery } from "@/sanity/lib/load-query";
+import { PAGE_BY_SLUG_QUERY } from "@/sanity/lib/queries";
+import { DEFAULT_LOCALE } from "@/sanity/lib/locale";
+import { uiText } from "@/lib/ui-strings";
+import { CONTACT_SLUG } from "@/lib/contact";
+
+const locale = DEFAULT_LOCALE;
+
+// Editors own the heading and intro copy (the `page` document with slug
+// `contact`); the form below it is template-owned. Optional with fallbacks, so
+// a site without that document still gets a working contact page.
+const { data: page } = await loadQuery<any>({
+  query: PAGE_BY_SLUG_QUERY,
+  params: { slug: CONTACT_SLUG, locale },
+});
+---
+
+<Layout
+  locale={locale}
+  title={page?.title ?? uiText("contactNav", locale)}
+  description={page?.seoDescription ?? uiText("contactIntro", locale)}
+  image={page?.ogImage}
+  path="/contact"
+>
+  <ContactPage locale={locale} page={page} />
+</Layout>

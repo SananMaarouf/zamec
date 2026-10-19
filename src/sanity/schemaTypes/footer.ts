@@ -1,9 +1,12 @@
 import { defineField, defineType } from "sanity";
 
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
+
 export const footerType = defineType({
   name: "footer",
   title: "Footer",
   type: "document",
+  description: DOCUMENT_GUIDES.footer,
   fields: [
     defineField({
       name: "instagramURL",
@@ -28,4 +31,8 @@ export const footerType = defineType({
       type: "internationalizedArrayString",
     }),
   ],
+  preview: {
+    // Singleton: the form header shows this as the pane heading.
+    prepare: () => ({ title: DOCUMENT_GUIDES.footer }),
+  },
 });

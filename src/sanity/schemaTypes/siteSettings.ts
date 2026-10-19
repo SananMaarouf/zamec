@@ -1,17 +1,22 @@
 import { defineField, defineType } from "sanity";
 
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
+
 export const siteSettingsType = defineType({
   name: "siteSettings",
   title: "Site Settings",
   type: "document",
+  description: DOCUMENT_GUIDES.siteSettings,
   fields: [
     defineField({
       name: "title",
+      title: "Site title",
       type: "internationalizedArrayString",
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: "description",
+      title: "Site description",
       type: "internationalizedArrayText",
     }),
     defineField({
@@ -36,4 +41,12 @@ export const siteSettingsType = defineType({
       to: [{ type: "navigation" }],
     }),
   ],
+  preview: {
+    // This document is opened as a singleton (id === type name), so the form
+    // header hides the type title and uses `preview.title` as its heading.
+    // Lead with what the document is for instead of echoing the site name.
+    // `media` is passed through without `select`, so the pane shows no
+    // thumbnail; add `select: { media: "ogImage" }` if that is wanted back.
+    prepare: () => ({ title: DOCUMENT_GUIDES.siteSettings }),
+  },
 });

@@ -1,8 +1,11 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
+
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
 
 export const postType = defineType({
   name: "post",
   type: "document",
+  description: DOCUMENT_GUIDES.post,
   fields: [
     defineField({
       name: "title",
@@ -21,13 +24,11 @@ export const postType = defineType({
       },
     }),
     defineField({
-      name: "author",
-      type: "reference",
-      to: { type: "author" },
-    }),
-    defineField({
       name: "mainImage",
+      title: "Cover image",
       type: "image",
+      description:
+        "Shown on the index page and at the top of the post. Leave empty to use the first gallery image.",
       options: {
         hotspot: true,
       },
@@ -37,6 +38,26 @@ export const postType = defineType({
           type: "string",
           title: "Alternative Text",
         },
+      ],
+    }),
+    defineField({
+      name: "images",
+      title: "Gallery images",
+      type: "array",
+      description:
+        "Add one or more images. Visitors can click an image to view it larger.",
+      of: [
+        defineArrayMember({
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            {
+              name: "alt",
+              type: "string",
+              title: "Alternative Text",
+            },
+          ],
+        }),
       ],
     }),
     defineField({
@@ -57,16 +78,15 @@ export const postType = defineType({
   preview: {
     select: {
       titles: "title",
-      author: "author.name",
-      media: "mainImage",
+      media: "coalesce(mainImage, images[0])",
     },
     prepare(selection) {
-      const { titles, author } = selection;
+      const { titles } = selection;
       // Extract the first title from the internationalized array
       const title = Array.isArray(titles) && titles.length > 0
         ? titles[0].value
         : "Untitled";
-      return { title, subtitle: author && `by ${author}`, media: selection.media };
+      return { title, media: selection.media };
     },
   },
 });

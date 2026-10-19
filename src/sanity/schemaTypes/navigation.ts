@@ -1,16 +1,13 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
+
 export const navigationType = defineType({
   name: "navigation",
   title: "Navigation",
   type: "document",
+  description: DOCUMENT_GUIDES.navigation,
   fields: [
-    defineField({
-      name: "title",
-      type: "string",
-      description: "Internal label for editors (not rendered).",
-      validation: (rule) => rule.required(),
-    }),
     defineField({
       name: "items",
       type: "array",
@@ -58,4 +55,8 @@ export const navigationType = defineType({
       ],
     }),
   ],
+  preview: {
+    // Singleton: the form header uses this as the pane heading.
+    prepare: () => ({ title: DOCUMENT_GUIDES.navigation }),
+  },
 });

@@ -4,6 +4,7 @@ import PortableText from "@/components/PortableText.astro";
 import { loadQuery } from "@/sanity/lib/load-query";
 import { PAGE_SLUGS_QUERY, PAGE_BY_SLUG_QUERY } from "@/sanity/lib/queries";
 import { NON_DEFAULT_LOCALES, type Locale } from "@/sanity/lib/locale";
+import { CONTACT_SLUG } from "@/lib/contact";
 
 export async function getStaticPaths() {
   const out: Array<{ params: { locale: Locale; page: string } }> = [];
@@ -12,7 +13,11 @@ export async function getStaticPaths() {
       query: PAGE_SLUGS_QUERY,
       params: { locale },
     });
-    for (const { slug } of data ?? []) out.push({ params: { locale, page: slug } });
+    // `/contact` has its own localized route (with the form) — skip it here.
+    for (const { slug } of data ?? []) {
+      if (slug === CONTACT_SLUG) continue;
+      out.push({ params: { locale, page: slug } });
+    }
   }
   return out;
 }

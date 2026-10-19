@@ -1,8 +1,11 @@
 import { defineField, defineType } from "sanity";
 
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
+
 export const categoryType = defineType({
   name: "category",
   type: "document",
+  description: DOCUMENT_GUIDES.category,
   fields: [
     defineField({
       name: "title",
