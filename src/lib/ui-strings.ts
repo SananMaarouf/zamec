@@ -32,7 +32,7 @@ const UI_STRINGS = {
   /** Nav label of the contact page (a template-owned route, not CMS content). */
   contactNav: { en: "Contact", nb: "Kontakt" },
   /** Headline of the contact page. */
-  contactTitle: { en: "Get in touch", nb: "Ta kontakt" },
+  contactTitle: { en: "Contact me", nb: "Kontakt meg" },
   /** Body copy at the top of the contact page, above the form. */
   contactIntro: {
     en: "Questions about a piece, a commission or an order? Send a message below and I’ll reply as soon as I can.",
