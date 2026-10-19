@@ -3,11 +3,13 @@ import "@/styles/global.css";
 import { Navbar, type MenuItem } from "@/components/react/navbar";
 import Footer from "@/components/Footer.astro";
 import SEO from "@/components/SEO.astro";
-import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
-import LanguageSwitcherMobile from "@/components/LanguageSwitcherMobile.astro";
+import LanguageSwitch from "@/components/LanguageSwitch.astro";
 import { loadQuery } from "@/sanity/lib/load-query";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
+import { loadTheme } from "@/sanity/lib/theme-query";
+import { themeFontsHref, themeToCss } from "@/lib/theme";
 import { resolveLocale, localizedPath, type Locale } from "@/sanity/lib/locale";
+import { uiText } from "@/lib/ui-strings";
 
 interface Props {
   locale?: Locale | string;
@@ -16,15 +18,29 @@ interface Props {
   image?: { asset?: any; alt?: string };
   /** Path *without* the locale prefix, e.g. `/post/hello`. */
   path?: string;
+  /** Error pages: emit `robots: noindex` and skip canonical/hreflang. */
+  noindex?: boolean;
 }
 
 const locale = resolveLocale(Astro.props.locale ?? Astro.currentLocale);
-const { title, description, image, path = "/" } = Astro.props;
+const { title, description, image, path = "/", noindex = false } = Astro.props;
 
-const { data: settings } = await loadQuery<any>({
-  query: SITE_SETTINGS_QUERY,
-  params: { locale },
-});
+// The palette is language-neutral and identical for every locale, so its GROQ
+// query is locale-free and memoized across pages (see `theme-query.ts`), while
+// site settings stay per-locale.
+const [{ data: settings }, { data: theme }] = await Promise.all([
+  loadQuery<any>({ query: SITE_SETTINGS_QUERY, params: { locale } }),
+  loadTheme(),
+]);
+
+// CMS color palette -> CSS variables. Empty string when no theme doc exists,
+// in which case the defaults in global.css apply.
+const themeCss = themeToCss(theme);
+
+// Google Fonts stylesheet for the two fonts chosen in the Studio (Theme →
+// Fonts), or null when both are left on "site default" — then no external font
+// request is made at all.
+const fontsHref = themeFontsHref(theme);
 
 const navTitle = settings?.title ?? "Astro × Sanity";
 
@@ -48,6 +64,14 @@ const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
     return { title: item.label, url };
   })
   .filter(Boolean) as MenuItem[];
+
+// The contact page is a template-owned route (there is no CMS document to
+// reference), so its nav entry is appended here instead of coming from the
+// Navigation document. Skip it when the editor already linked it themselves.
+const contactUrl = localizedPath(locale, "/contact");
+if (!menu.some((item) => item.url === contactUrl)) {
+  menu.push({ title: uiText("contactNav", locale), url: contactUrl });
+}
 ---
 
 <!doctype html>
@@ -55,7 +79,17 @@ const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Fonts selected in the Studio (Theme → Fonts). Preconnect first so the
+         font request does not pay for a fresh DNS + TLS handshake. -->
+    {
+      fontsHref && (
+        <>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+          <link rel="stylesheet" href={fontsHref} />
+        </>
+      )
+    }
     <meta name="generator" content={Astro.generator} />
     <SEO
       locale={locale}
@@ -63,7 +97,9 @@ const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
       description={description}
       image={image}
       path={path}
+      noindex={noindex}
     />
+    {themeCss && <style is:inline set:html={themeCss} />}
     <script is:inline>
       const theme =
         localStorage.getItem("theme") ||
@@ -78,15 +114,12 @@ const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
       client:load
       logo={{
         url: localizedPath(locale, "/"),
-        src: "/astro.svg",
-        alt: "logo",
         title: navTitle,
       }}
       menu={menu}
-      linkBtn={{ title: "Posts", url: localizedPath(locale, "/posts") }}
     >
-      <LanguageSwitcher />
-      <LanguageSwitcherMobile slot="mobileExtras" />
+      <LanguageSwitch size="sm" />
+      <LanguageSwitch slot="mobileExtras" />
     </Navbar>
     <main class="flex-1">
       <slot />

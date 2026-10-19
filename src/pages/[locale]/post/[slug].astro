@@ -31,7 +31,7 @@ if (!post) throw new Error(`Post not found: ${locale}/${slug}`);
   locale={locale}
   title={post.title}
   description={post.body?.[0]?.children?.[0]?.text}
-  image={post.mainImage}
+  image={post.mainImage ?? post.images?.[0]}
   path={`/post/${slug}`}
 >
   <PostPage post={post} locale={locale} />

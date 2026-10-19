@@ -1,0 +1,37 @@
+---
+import { localizedPath, type Locale } from "@/sanity/lib/locale";
+import { uiText } from "@/lib/ui-strings";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const homeHref = localizedPath(locale, "/");
+
+// Matches the shadcn button variants in `src/components/ui/button.tsx` so the
+// static page does not need to ship the React button just for one link.
+const buttonBase =
+  "inline-flex h-10 items-center justify-center rounded-md px-6 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+---
+
+<section class="container mx-auto flex min-h-[55vh] max-w-2xl flex-col items-center justify-center px-4 py-20 text-center">
+  <p
+    class="font-heading text-7xl font-bold leading-none tracking-tight text-primary sm:text-8xl"
+    aria-hidden="true"
+  >
+    404
+  </p>
+  <h1 class="font-heading mt-8 text-3xl font-bold text-balance sm:text-4xl">
+    {uiText("notFoundTitle", locale)}
+  </h1>
+  <p class="mt-4 max-w-md text-pretty text-muted-foreground">
+    {uiText("notFoundMessage", locale)}
+  </p>
+  <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+    <a href={homeHref} class:list={[buttonBase, "bg-primary text-primary-foreground hover:bg-primary/90"]}>
+      {uiText("notFoundHome", locale)}
+    </a>
+  </div>
+</section>

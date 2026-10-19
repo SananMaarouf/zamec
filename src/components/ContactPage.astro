@@ -1,0 +1,58 @@
+---
+/**
+ * Contact page body. Rendered by `src/pages/contact.astro` (default locale) and
+ * `src/pages/[locale]/contact.astro`.
+ *
+ * The heading and intro come from the CMS `page` document with slug `contact`
+ * when one is published, so editors can rewrite the copy in the Studio; the
+ * localized strings in `ui-strings` are the fallback for a site without it.
+ * The form itself is template-owned chrome — its labels live in the island.
+ */
+import PortableText from "@/components/PortableText.astro";
+import { ContactForm } from "@/components/react/contact-form";
+import { uiText } from "@/lib/ui-strings";
+import { type Locale } from "@/sanity/lib/locale";
+
+interface Props {
+  locale: Locale;
+  /** The `page` document with slug `contact`, when one exists. */
+  page?: {
+    title?: string | null;
+    body?: any[] | null;
+  } | null;
+}
+
+const { locale, page } = Astro.props;
+
+// Read at build time and baked into the static HTML. The site is static, so the
+// endpoint is public by design — a Formspree form id is not a secret.
+const endpoint = import.meta.env.FORMSPREE_URL;
+
+// An editor's placeholder blocks (empty paragraphs) should not suppress the
+// template's intro copy.
+const bodyHasText = (page?.body ?? []).some((block: any) =>
+  (block.children ?? []).some((child: any) => child.text?.trim()),
+);
+---
+
+<section class="container mx-auto max-w-2xl px-4 py-12 md:py-16">
+  <h1 class="font-heading text-3xl font-bold text-balance sm:text-4xl">
+    {page?.title ?? uiText("contactTitle", locale)}
+  </h1>
+
+  {
+    bodyHasText ? (
+      <div class="prose dark:prose-invert mt-4 max-w-none">
+        <PortableText value={page?.body ?? []} />
+      </div>
+    ) : (
+      <p class="mt-4 text-pretty text-muted-foreground">
+        {uiText("contactIntro", locale)}
+      </p>
+    )
+  }
+
+  <div class="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
+    <ContactForm client:load endpoint={endpoint} locale={locale} />
+  </div>
+</section>

@@ -1,0 +1,195 @@
+---
+import type { Locale } from "@/sanity/lib/locale";
+import { uiText } from "@/lib/ui-strings";
+
+/**
+ * Image strip for a post's gallery.
+ *
+ * One sideways scrolling strip at every width, kept small next to the post's
+ * cover image: two short (4:3) tiles at a time on a phone, three square ones
+ * on a desktop row. The tiles are sized so the next one always peeks in at the
+ * right edge — the cue that there is more to scroll — and a pair of arrow
+ * controls appears above the strip when a post has more images than one
+ * desktop row holds (a mouse wheel cannot scroll a horizontal area, so the
+ * arrows matter most on desktop; on a phone the strip is swiped).
+ *
+ * Every tile stays a lightbox trigger (`data-lightbox-src`), so the viewer in
+ * `PostPage.astro` walks the images in the order they appear here.
+ */
+interface Props {
+  images: Array<{ alt: string; thumb: string; full: string }>;
+  locale: Locale;
+}
+
+const { images, locale } = Astro.props;
+
+/** Tiles across on a desktop row. */
+const DESKTOP_TILES = 3;
+
+/** Arrow controls, for posts with more images than one desktop row shows. */
+const scrollable = images.length > DESKTOP_TILES;
+
+/*
+ * Tile width, as a share of the track. The pattern is
+ * (100% - tiles × 0.75rem gap - peek) / tiles, so that `tiles` tiles, their
+ * gaps and the peek exactly fill the row and the next tile is cut off by the
+ * peek. The numbers are spelled out rather than computed because Tailwind only
+ * emits a class it can read as literal text in the source:
+ *   phone   → 2 tiles + 2 × 0.75rem gap + 2.5rem peek (≈147px on a 390px
+ *             screen, cropped to 4:3 so the strip stays short). With only two
+ *             images there is no third one to peek, so they fill the row
+ *             instead, and a lone image just fills it on its own
+ *   desktop → 3 tiles + 3 × 0.75rem gap + 2.5rem peek when there is a fourth,
+ *             otherwise 3 tiles + the 2 gaps between them
+ */
+const mobileWidth =
+  images.length === 1
+    ? "w-full"
+    : images.length === 2
+      ? "w-[calc((100%-0.75rem)/2)]" // both tiles + the gap between them
+      : "w-[calc((100%-4rem)/2)]"; // 2 × 0.75rem gap + 2.5rem peek
+
+const tileWidth = [
+  mobileWidth,
+  scrollable ? "sm:w-[calc((100%-4.75rem)/3)]" : "sm:w-[calc((100%-1.5rem)/3)]",
+].join(" ");
+
+const scrollPreviousLabel = uiText("galleryScrollPrevious", locale);
+const scrollNextLabel = uiText("galleryScrollNext", locale);
+
+/* Touch-friendly on a phone, compact from the desktop breakpoint up. */
+const controlClass =
+  "inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 sm:size-8";
+
+const tileClass =
+  "block w-full cursor-zoom-in overflow-hidden rounded-lg border border-border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+/* Short tiles on a phone (see the tile width note), square from `sm` up. */
+const imageClass =
+  "aspect-[4/3] w-full object-cover transition-transform duration-300 hover:scale-[1.03] sm:aspect-square";
+---
+
+<div class="not-prose mb-8" data-gallery>
+  {
+    scrollable && (
+      <div class="mb-2 flex justify-end gap-2">
+        <button type="button" data-gallery-prev aria-label={scrollPreviousLabel} class={controlClass}>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            class="size-4"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <button type="button" data-gallery-next aria-label={scrollNextLabel} class={controlClass}>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            class="size-4"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+      </div>
+    )
+  }
+
+  <ul
+    data-gallery-track
+    class="m-0 flex list-none snap-x snap-proximity gap-3 overflow-x-auto p-0 pb-2 [scrollbar-width:thin]"
+  >
+    {
+      images.map((image) => (
+        <li class={`flex-none snap-start ${tileWidth}`}>
+          <button
+            type="button"
+            data-lightbox-src={image.full}
+            data-lightbox-alt={image.alt}
+            aria-label="View image larger"
+            class={tileClass}
+          >
+            <img
+              src={image.thumb}
+              alt={image.alt}
+              loading="lazy"
+              class={imageClass}
+            />
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<script>
+  // Gallery strips: the arrow buttons step one tile at a time and switch off
+  // at either end. `scroll-snap-type: x proximity` keeps flicks tidy without
+  // trapping the last tile (mandatory snapping cannot reach a snap point that
+  // lies past the end of the scroll range, which would hide it).
+  document.querySelectorAll<HTMLElement>("[data-gallery]").forEach((gallery) => {
+    const track = gallery.querySelector<HTMLElement>("[data-gallery-track]");
+    const previous = gallery.querySelector<HTMLButtonElement>("[data-gallery-prev]");
+    const next = gallery.querySelector<HTMLButtonElement>("[data-gallery-next]");
+    if (!track || !previous || !next) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const maxScroll = () => track.scrollWidth - track.clientWidth;
+
+    /** One tile plus the gap, so a click lands on the next tile's edge. */
+    const step = () => {
+      const tile = track.firstElementChild as HTMLElement | null;
+      if (!tile) return track.clientWidth;
+      const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
+      return tile.getBoundingClientRect().width + gap;
+    };
+
+    /** Grey out whichever arrow points at nothing. */
+    const sync = () => {
+      previous.disabled = track.scrollLeft <= 1;
+      next.disabled = track.scrollLeft >= maxScroll() - 1;
+    };
+
+    const scrollTo = (left: number) => {
+      const target = Math.min(Math.max(left, 0), maxScroll());
+      const before = track.scrollLeft;
+      const smooth = !reduceMotion.matches;
+      track.scrollTo({ left: target, behavior: smooth ? "smooth" : "auto" });
+      sync(); // an instant scroll has already landed by now
+      if (!smooth) return;
+      // An ignored smooth request must not leave the button looking dead, so
+      // check that the strip actually moved and jump to the target if not.
+      window.setTimeout(() => {
+        if (
+          Math.abs(track.scrollLeft - before) < 1 &&
+          Math.abs(target - before) >= 1
+        ) {
+          track.scrollTo({ left: target, behavior: "auto" });
+        }
+        sync();
+      }, 200);
+      // The animation is over well before this, and syncing again keeps the
+      // arrow states right even where `scroll` events are not delivered.
+      window.setTimeout(sync, 600);
+    };
+
+    previous.addEventListener("click", () => scrollTo(track.scrollLeft - step()));
+    next.addEventListener("click", () => scrollTo(track.scrollLeft + step()));
+
+    // Wheel, drag and keyboard scrolling go through the scroll event; the
+    // explicit syncs above cover arrow clicks.
+    track.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
+    sync();
+  });
+</script>

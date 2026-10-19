@@ -1,93 +1,106 @@
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
-export function ThemeSwitcher() {
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+/**
+ * The `<html class="dark">` class is the source of truth for the theme — the
+ * inline script in `Layout.astro` sets it before first paint. Every switch
+ * instance mirrors it through a MutationObserver, so toggling the switch in
+ * the mobile sheet also moves the one in the desktop navbar.
+ */
+function useThemeMode() {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    // Check for saved theme preference or default to dark
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
-    
-    setTheme(initialTheme);
-    document.documentElement.classList.toggle("dark", initialTheme === "dark");
+    const root = document.documentElement;
+    const sync = () =>
+      setTheme(root.classList.contains("dark") ? "dark" : "light");
+
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
+  const setThemeMode = (next: "light" | "dark") => {
+    localStorage.setItem("theme", next);
+    document.documentElement.classList.toggle("dark", next === "dark");
   };
 
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggleTheme}
-      aria-label="Toggle theme"
-    >
-      {theme === "dark" ? (
-        <Sun className="h-5 w-5" />
-      ) : (
-        <Moon className="h-5 w-5" />
-      )}
-    </Button>
-  );
+  return { theme, setThemeMode };
 }
 
-export function ThemeSwitcherMobile() {
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+/**
+ * Big horizontal light switch: a knob slides between the sun (light) and the
+ * moon (dark) end. Used both in the desktop navbar and in the mobile sheet —
+ * `sm` is the compact desktop variant.
+ */
+const themeSwitchSizes = {
+  sm: {
+    track: "h-8 w-16",
+    knob: "size-6",
+    knobShift: "translate-x-8",
+    sun: "left-[9px] size-3.5",
+    moon: "right-[9px] size-3.5",
+  },
+  md: {
+    track: "h-12 w-24",
+    knob: "size-10",
+    knobShift: "translate-x-12",
+    sun: "left-3.5 size-5",
+    moon: "right-3.5 size-5",
+  },
+} as const;
 
-  useEffect(() => {
-    // Check for saved theme preference or default to dark
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
-    
-    setTheme(initialTheme);
-    document.documentElement.classList.toggle("dark", initialTheme === "dark");
-  }, []);
-
-  const setThemeMode = (newTheme: "light" | "dark") => {
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
+export function ThemeSwitch({
+  size = "md",
+  className,
+}: {
+  size?: keyof typeof themeSwitchSizes;
+  className?: string;
+}) {
+  const { theme, setThemeMode } = useThemeMode();
+  const isDark = theme === "dark";
+  const styles = themeSwitchSizes[size];
 
   return (
-    <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value="theme" className="border-b-0">
-        <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
-          Theme
-        </AccordionTrigger>
-        <AccordionContent className="mt-2 flex flex-col gap-2">
-          <Button
-            variant={theme === "light" ? "default" : "ghost"}
-            onClick={() => setThemeMode("light")}
-            className="w-full justify-start gap-2"
-          >
-            <Sun className="h-5 w-5" />
-            <span>Light Mode</span>
-          </Button>
-          <Button
-            variant={theme === "dark" ? "default" : "ghost"}
-            onClick={() => setThemeMode("dark")}
-            className="w-full justify-start gap-2"
-          >
-            <Moon className="h-5 w-5" />
-            <span>Dark Mode</span>
-          </Button>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={isDark}
+      aria-label="Dark mode"
+      onClick={() => setThemeMode(isDark ? "light" : "dark")}
+      className={cn(
+        "bg-muted focus-visible:ring-ring/50 relative inline-flex shrink-0 cursor-pointer items-center rounded-0 border transition-colors outline-none focus-visible:ring-[3px]",
+        styles.track,
+        className,
+      )}
+    >
+      {/* Painted before the icons, so the active icon stays readable on top. */}
+      <span
+        aria-hidden="true"
+        className={cn(
+          "bg-primary absolute top-1 left-1 rounded-0 shadow-sm transition-transform duration-300 ease-in-out",
+          styles.knob,
+          isDark && styles.knobShift,
+        )}
+      />
+      <Sun
+        aria-hidden="true"
+        className={cn(
+          "absolute transition-colors",
+          styles.sun,
+          isDark ? "text-muted-foreground" : "text-primary-foreground",
+        )}
+      />
+      <Moon
+        aria-hidden="true"
+        className={cn(
+          "absolute transition-colors",
+          styles.moon,
+          isDark ? "text-primary-foreground" : "text-muted-foreground",
+        )}
+      />
+    </button>
   );
 }

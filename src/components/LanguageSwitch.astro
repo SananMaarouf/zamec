@@ -1,0 +1,97 @@
+---
+/**
+ * Language switcher as a horizontal light switch, mirroring `ThemeSwitch`: a
+ * track with a knob that slides between the two flags. Each half is a plain
+ * link, so it works without JavaScript and each language keeps its own
+ * localized href, `hreflang` and `aria-current`.
+ */
+import {
+  LOCALES,
+  DEFAULT_LOCALE,
+  resolveLocale,
+  type Locale,
+} from "@/sanity/lib/locale";
+import LanguageFlag from "@/components/LanguageFlag.astro";
+import { cn } from "@/lib/utils";
+
+const current = resolveLocale(Astro.currentLocale);
+
+// Strip a leading locale prefix from the current path so we can re-prefix it.
+function stripLocalePrefix(pathname: string): string {
+  for (const loc of LOCALES) {
+    if (loc === DEFAULT_LOCALE) continue;
+    if (pathname === `/${loc}` || pathname === `/${loc}/`) return "/";
+    if (pathname.startsWith(`/${loc}/`)) return pathname.slice(`/${loc}`.length);
+  }
+  return pathname;
+}
+
+const basePath = stripLocalePrefix(Astro.url.pathname);
+
+function hrefFor(loc: Locale): string {
+  if (loc === DEFAULT_LOCALE) return basePath || "/";
+  return basePath === "/" ? `/${loc}/` : `/${loc}${basePath}`;
+}
+
+const labels: Record<Locale, string> = {
+  en: "English",
+  nb: "Norsk",
+};
+
+// The track is split in two halves; the knob rests on the active one.
+const activeIndex = Math.max(0, LOCALES.indexOf(current));
+
+// `md` fills the mobile sheet, `sm` is the compact desktop variant.
+interface Props {
+  size?: "sm" | "md";
+}
+
+const { size = "md" } = Astro.props;
+
+const styles =
+  size === "sm"
+    ? {
+        track: "h-8 w-16",
+        knob: "size-6",
+        knobShift: "translate-x-8",
+        flag: "h-2.5 w-4",
+      }
+    : {
+        track: "h-12 w-24",
+        knob: "size-10",
+        knobShift: "translate-x-12",
+        flag: "h-4 w-6",
+      };
+---
+<div
+  role="group"
+  aria-label="Language"
+  class={cn(
+    "bg-muted relative inline-flex shrink-0 items-center rounded-0 border",
+    styles.track,
+  )}
+>
+  {/* Painted before the flags, so the active flag stays readable on top. */}
+  <span
+    aria-hidden="true"
+    class={cn(
+      "bg-primary absolute top-1 left-1 rounded-0 shadow-sm transition-transform duration-300 ease-in-out",
+      styles.knob,
+      activeIndex > 0 && styles.knobShift,
+    )}
+  ></span>
+  {LOCALES.map((loc) => (
+    <a
+      href={hrefFor(loc)}
+      hreflang={loc}
+      aria-current={loc === current ? "true" : undefined}
+      aria-label={labels[loc]}
+      class={cn(
+        "focus-visible:ring-ring/50 relative flex h-full w-1/2 items-center justify-center rounded-0 outline-none transition-opacity focus-visible:ring-[3px]",
+        loc === current ? "opacity-100" : "opacity-60 hover:opacity-100",
+      )}
+    >
+      <LanguageFlag locale={loc} class={cn("rounded-xs", styles.flag)} />
+    </a>
+  ))}
+</div>

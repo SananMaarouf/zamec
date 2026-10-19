@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const postType = defineType({
   name: "post",
@@ -27,7 +27,10 @@ export const postType = defineType({
     }),
     defineField({
       name: "mainImage",
+      title: "Cover image",
       type: "image",
+      description:
+        "Shown on the index page and at the top of the post. Leave empty to use the first gallery image.",
       options: {
         hotspot: true,
       },
@@ -37,6 +40,26 @@ export const postType = defineType({
           type: "string",
           title: "Alternative Text",
         },
+      ],
+    }),
+    defineField({
+      name: "images",
+      title: "Gallery images",
+      type: "array",
+      description:
+        "Add one or more images. Visitors can click an image to view it larger.",
+      of: [
+        defineArrayMember({
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            {
+              name: "alt",
+              type: "string",
+              title: "Alternative Text",
+            },
+          ],
+        }),
       ],
     }),
     defineField({
@@ -58,7 +81,7 @@ export const postType = defineType({
     select: {
       titles: "title",
       author: "author.name",
-      media: "mainImage",
+      media: "coalesce(mainImage, images[0])",
     },
     prepare(selection) {
       const { titles, author } = selection;

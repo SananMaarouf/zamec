@@ -1,0 +1,429 @@
+---
+import { localizedPath, type Locale } from "@/sanity/lib/locale";
+import { urlForImage } from "@/sanity/lib/url-for-image";
+
+interface Props {
+  posts: Array<{
+    title?: string;
+    slug?: string;
+    mainImage?: { asset?: any; alt?: string };
+    images?: Array<{ asset?: any; alt?: string }>;
+  }>;
+  locale: Locale;
+}
+
+const { posts = [], locale } = Astro.props;
+
+// ── Image loading strategy ────────────────────────────────────────────────
+// The tiles are clickable 1:1 thumbnails of full photos, so the index is only
+// as fast as the bytes it fetches. Three things keep that cheap:
+//
+//   1. `srcset`/`sizes` — a tile is ~410 CSS px at its widest (three columns
+//      inside the 1264px container), so a 1x desktop screen gets the 600px
+//      render where it used to be served the 800px one. Only a DPR3 phone
+//      still reaches the 800px candidate.
+//   2. No `src` in the served HTML. The real URL travels in `data-src` and is
+//      only assigned once the tile is within 250px of the viewport, so the
+//      browser cannot prefetch the whole grid for you. Without JS the
+//      `<noscript>` copy below still renders every image.
+//   3. A ~156-byte blurred 32px copy of each asset, inlined as a data URI on
+//      the tile, so a tile waiting for its bytes shows the photo's own colours
+//      instead of an empty box.
+const WIDTHS = [400, 600, 800];
+
+// Mirrors the grid classes below: 1 column, 2 from `sm`, 3 from `lg`.
+// 3.5rem = 2rem container padding + 2 × 0.75rem gaps; 2.75rem = padding + 1 gap.
+const SIZES = [
+  "(min-width: 1280px) calc((80rem - 3.5rem) / 3)",
+  "(min-width: 1024px) calc((100vw - 3.5rem) / 3)",
+  "(min-width: 640px) calc((100vw - 2.75rem) / 2)",
+  "calc(100vw - 2rem)",
+].join(", ");
+
+// One CDN round-trip per asset per build (both index pages render this
+// component, hence the cache). A failure just means no placeholder.
+const lqipCache = new Map<string, string | null>();
+
+async function lqipDataUri(asset: any): Promise<string | null> {
+  const ref = asset?._ref as string | undefined;
+  if (!ref) return null;
+  if (lqipCache.has(ref)) return lqipCache.get(ref)!;
+  let uri: string | null = null;
+  try {
+    // 32px square + Sanity's own blur, so the placeholder reads as the photo's
+    // colours rather than a pixelated thumbnail. Pinned to webp (~114 bytes
+    // each): `auto=format` lets the CDN pick avif, whose container overhead
+    // almost triples the payload at this size.
+    const url = urlForImage(asset)
+      .width(32)
+      .height(32)
+      .fit("crop")
+      .blur(30)
+      .quality(40)
+      .format("webp")
+      .url();
+    const res = await fetch(url);
+    if (res.ok) {
+      const buf = Buffer.from(await res.arrayBuffer());
+      uri = `data:${res.headers.get("content-type") ?? "image/webp"};base64,${buf.toString("base64")}`;
+    }
+  } catch {
+    uri = null;
+  }
+  lqipCache.set(ref, uri);
+  return uri;
+}
+
+// Image-only gallery: one square thumbnail per post, linking to the post.
+// The post's cover image is used, falling back to its first gallery image so
+// posts that only use the gallery still show up.
+const items = (
+  await Promise.all(
+    posts.map(async (post) => {
+      const image = post.mainImage?.asset ? post.mainImage : post.images?.[0];
+      if (!post.slug || !image?.asset) return null;
+      const url = (w: number) =>
+        urlForImage(image.asset)
+          .width(w)
+          .height(w)
+          .fit("crop")
+          .auto("format")
+          .url();
+      return {
+        href: localizedPath(locale, `/post/${post.slug}`),
+        title: post.title ?? "",
+        alt: image.alt ?? post.title ?? "",
+        src: url(800),
+        small: url(400),
+        srcset: WIDTHS.map((w) => `${url(w)} ${w}w`).join(", "),
+        lqip: await lqipDataUri(image.asset),
+      };
+    })
+  )
+).filter(Boolean) as Array<{
+  href: string;
+  title: string;
+  alt: string;
+  src: string;
+  small: string;
+  srcset: string;
+  lqip: string | null;
+}>;
+---
+
+<script is:inline>
+  // Runs during parse, before the grid paints: the entry styles are gated on
+  // this class, so without JS (or if the script below never boots) every tile
+  // stays visible. The timer is the fail-open guard for a JS error.
+  document.documentElement.classList.add("has-reveal");
+  setTimeout(function () {
+    if (!document.documentElement.dataset.revealReady) {
+      document.documentElement.classList.remove("has-reveal");
+    }
+  }, 1500);
+</script>
+
+<style is:global>
+  /* Every tile starts hidden, so the first painted frame is not a flash of the
+     finished state. Opacity only: GSAP owns the transforms. */
+  html.has-reveal [data-post-card] {
+    opacity: 0;
+  }
+  /* Scripting is off entirely, so the guard timer never runs: unhide through the
+     media query instead of leaving the grid blank for a second and a half. */
+  @media (scripting: none) {
+    html.has-reveal [data-post-card] {
+      opacity: 1;
+    }
+  }
+  /* The sharp image fades over the blurred placeholder it sits on. */
+  html.has-reveal [data-post-card] img[data-lazy-img] {
+    opacity: 0;
+    transition:
+      opacity 0.55s ease-out,
+      transform 0.3s ease;
+  }
+  html.has-reveal [data-post-card].is-loaded img[data-lazy-img] {
+    opacity: 1;
+  }
+  /* The title strip starts one full height below the tile, so it is already
+     out of the way on the first paint and needs no JS to stay hidden. GSAP
+     takes the transform over from here and slides it up on hover. */
+  [data-card-panel] {
+    transform: translateY(100%);
+  }
+</style>
+
+{
+  items.length ? (
+    <div
+      data-post-grid
+      class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      {items.map((item, index) => (
+        <a
+          href={item.href}
+          data-post-card
+          class="group relative block overflow-hidden rounded-lg border border-border bg-card bg-cover bg-center shadow-sm transition-[scale,translate,box-shadow] duration-200 data-[active=true]:z-10 data-[active=true]:-translate-y-1 data-[active=true]:scale-[1.04] data-[active=true]:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          style={item.lqip ? `background-image:url("${item.lqip}")` : undefined}
+        >
+          <img
+            data-lazy-img
+            data-src={item.src}
+            data-srcset={item.srcset}
+            sizes={SIZES}
+            width="800"
+            height="800"
+            alt={item.alt}
+            loading={index === 0 ? "eager" : "lazy"}
+            fetchpriority={index === 0 ? "high" : undefined}
+            decoding="async"
+            class="aspect-square w-full object-cover"
+          />
+          <noscript>
+            <img
+              src={item.small}
+              alt={item.alt}
+              width="800"
+              height="800"
+              loading="lazy"
+              decoding="async"
+              class="absolute inset-0 aspect-square w-full object-cover"
+            />
+          </noscript>
+          <span
+            data-card-panel
+            class="pointer-events-none absolute inset-x-0 bottom-0 flex min-h-[4.5rem] items-center justify-between gap-3 border-t border-border/60 bg-card/95 px-4 py-4 text-sm font-medium text-card-foreground backdrop-blur-sm"
+          >
+            <span class="min-w-0 truncate">{item.title}</span>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-4 shrink-0"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          </span>
+        </a>
+      ))}
+    </div>
+  ) : (
+    <p class="text-muted-foreground">No posts yet.</p>
+  )
+}
+
+<script>
+  import gsap from "gsap";
+
+  const grid = document.querySelector<HTMLElement>("[data-post-grid]");
+
+  if (grid) {
+    const cards = Array.from(
+      grid.querySelectorAll<HTMLElement>("[data-post-card]")
+    );
+
+    // Tells the inline guard above that this script booted, so it stops
+    // suppressing the grid.
+    document.documentElement.dataset.revealReady = "1";
+
+    // ── Image gate ────────────────────────────────────────────────────────
+    // Independent of the animation: a tile's real URLs are handed to the
+    // browser only once it is within 250px of the viewport.
+    const load = (card: HTMLElement) => {
+      const img = card.querySelector<HTMLImageElement>("img[data-lazy-img]");
+      if (!img || !img.dataset.src) return;
+      if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+      img.src = img.dataset.src;
+      delete img.dataset.src;
+      delete img.dataset.srcset;
+      if (img.complete && img.naturalWidth > 0) card.classList.add("is-loaded");
+      else
+        img.addEventListener("load", () => card.classList.add("is-loaded"), {
+          once: true,
+        });
+    };
+
+    const loader = new IntersectionObserver(
+      (entries, observer) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          load(entry.target as HTMLElement);
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: "250px 0px" }
+    );
+    cards.forEach((card) => loader.observe(card));
+
+    // ── Hover state ───────────────────────────────────────────────────────
+    // One pointer state drives both the lift/zoom of the whole tile and the
+    // title strip sliding up over the photo. Driven from JS rather than a CSS
+    // `:hover` rule for two reasons: it also fires on a tap and on keyboard
+    // focus, and the raise is a data-attribute variant, which is not gated by
+    // `@media (hover: hover)` the way Tailwind's `hover:` variants are.
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    for (const card of cards) {
+      const panel = card.querySelector<HTMLElement>("[data-card-panel]");
+      if (!panel) continue;
+      const arrow = panel.querySelector<SVGElement>("svg");
+
+      // Same start state as the CSS, now owned by GSAP's transform. `y: 0`
+      // first: GSAP reads the stylesheet's translateY(100%) as a pixel offset
+      // and yPercent would stack on top of it, leaving the strip half out.
+      gsap.set(panel, { y: 0, yPercent: 100 });
+
+      const show = () => {
+        card.dataset.active = "true";
+        gsap.to(panel, {
+          yPercent: 0,
+          duration: reduceMotion ? 0 : 0.32,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+        if (arrow)
+          gsap.to(arrow, {
+            x: 3,
+            duration: reduceMotion ? 0 : 0.32,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+      };
+      const hide = () => {
+        delete card.dataset.active;
+        gsap.to(panel, {
+          yPercent: 100,
+          duration: reduceMotion ? 0 : 0.24,
+          ease: "power2.in",
+          overwrite: "auto",
+        });
+        if (arrow)
+          gsap.to(arrow, {
+            x: 0,
+            duration: reduceMotion ? 0 : 0.24,
+            ease: "power2.in",
+            overwrite: "auto",
+          });
+      };
+
+      card.addEventListener("pointerenter", show);
+      card.addEventListener("pointerleave", hide);
+      // Keyboard users get the same strip, but only for real focus-visible
+      // focus, not the focus a mouse click leaves behind.
+      card.addEventListener("focus", () => {
+        if (card.matches(":focus-visible")) show();
+      });
+      card.addEventListener("blur", hide);
+    }
+
+    if (reduceMotion) {
+      // No animation at all: drop the pre-paint hiding and let the gate above
+      // fetch the tiles as the browser scrolls.
+      document.documentElement.classList.remove("has-reveal");
+    } else {
+      // Every tile animates, including the first. The LCP protection is the
+      // first tile's `loading="eager"` + `fetchpriority="high"` (its bytes go
+      // out first) rather than freezing it in place, which just looked like the
+      // animation was broken on the first tile of every row.
+      // Tiles below the fold wait for the observer; tiles already on screen
+      // arrive with the page, row by row — which is also what makes the effect
+      // visible on a load where the whole grid fits the window (on a 1200px-tall
+      // screen this grid is only three rows, so nothing would ever enter the
+      // viewport otherwise).
+      // Park them in their entry state before the observer can fire, so the
+      // first tween has somewhere to come from.
+      gsap.set(cards, { y: 28, scale: 0.96 });
+
+      const enter = (card: HTMLElement, delay: number) =>
+        gsap.to(card, {
+          autoAlpha: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.45,
+          // Linear on purpose: a uniform amount of movement per frame, no
+          // acceleration at either end.
+          ease: "none",
+          // Rows, not tiles: everything in one row shares a start, and the next
+          // row follows a beat later.
+          delay,
+          overwrite: "auto",
+          // GSAP parks `translate/scale` as inline `none` on every tile it has
+          // touched, which would outrank the CSS hover pose below. Hand the
+          // transform back to the stylesheet once the tile has landed; opacity
+          // stays inline, so the reveal still owns that.
+          onComplete: () =>
+            gsap.set(card, {
+              clearProps: "transform,translate,scale,rotate",
+            }),
+        });
+
+      const exit = (card: HTMLElement) =>
+        gsap.to(card, {
+          autoAlpha: 0,
+          y: 20,
+          scale: 0.97,
+          duration: 0.3,
+          ease: "none",
+          overwrite: "auto",
+        });
+
+      // Seconds between one row and the next. Tiles within a row start together.
+      const ROW_DELAY = 0.12;
+      const columns = () => {
+        const tracks = getComputedStyle(grid)
+          .gridTemplateColumns.split(" ")
+          .filter(Boolean).length;
+        return Math.max(1, tracks);
+      };
+
+      // One observer driving one tween each way: entering plays in, leaving
+      // plays out, so scrolling up and down animates the tiles in both
+      // directions. `overwrite: "auto"` lets a reversal mid-flight take over
+      // cleanly instead of stacking two tweens on the same tile.
+      const entered = new WeakSet<HTMLElement>();
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const cols = columns();
+          // The batch is grouped by grid row first: which row a tile belongs to
+          // depends on the breakpoint, so it is read from the live grid rather
+          // than assumed. A row entering on its own is a group of one, so it
+          // starts immediately; a batch covering several rows cascades down them.
+          const arriving = entries
+            .filter((entry) => entry.isIntersecting)
+            .map((entry) => {
+              const card = entry.target as HTMLElement;
+              return { card, row: Math.floor(cards.indexOf(card) / cols) };
+            });
+          const rows = [...new Set(arriving.map((a) => a.row))].sort(
+            (a, b) => a - b
+          );
+
+          for (const { card, row } of arriving) {
+            entered.add(card);
+            enter(card, rows.indexOf(row) * ROW_DELAY);
+          }
+
+          for (const entry of entries) {
+            const card = entry.target as HTMLElement;
+            // Only play the exit for tiles that actually played the entry: the
+            // first callback reports every off-screen tile at once, and there is
+            // nothing to animate away for a tile that never showed.
+            if (!entry.isIntersecting && entered.has(card)) exit(card);
+          }
+        },
+        // 12% of the tile on screen before it animates in, and back out only
+        // once it has left almost entirely.
+        { rootMargin: "0px 0px -4% 0px", threshold: 0.12 }
+      );
+      cards.forEach((card) => observer.observe(card));
+    }
+  }
+</script>

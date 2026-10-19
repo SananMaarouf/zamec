@@ -1,7 +1,9 @@
 ---
 import { localizedPath, type Locale } from "@/sanity/lib/locale";
+import { uiText } from "@/lib/ui-strings";
 import PortableText from "@/components/PortableText.astro";
-import SanityImage from "@/components/SanityImage.astro";
+import PostImageGallery from "@/components/PostImageGallery.astro";
+import { urlForImage } from "@/sanity/lib/url-for-image";
 
 interface Props {
   post: any;
@@ -17,36 +19,365 @@ const dateLabel = post?.publishedAt
       day: "numeric",
     })
   : null;
+
+// Cover image if set, otherwise the first gallery image. The cover is dropped
+// from the grid below so the same picture never appears twice.
+const cover = post?.mainImage?.asset ? post.mainImage : post?.images?.[0];
+const coverRef = cover?.asset?._ref;
+
+const gallery = (post?.images ?? []).filter(
+  (image: any) => image?.asset?._ref && image.asset._ref !== coverRef
+);
+
+// The cover renders small (`max-w-md`), so a modest width is plenty — the
+// lightbox owns the full-size version.
+const coverUrl = cover?.asset
+  ? urlForImage(cover.asset).width(800).fit("max").auto("format").url()
+  : null;
+
+// `thumb` is what renders in the page, `full` is what the lightbox loads on
+// click/tap.
+interface GalleryItem {
+  alt: string;
+  thumb: string;
+  full: string;
+}
+
+const galleryItems: GalleryItem[] = gallery.map((image: any) => ({
+  alt: image.alt ?? "",
+  thumb: urlForImage(image.asset).width(1200).fit("max").auto("format").url(),
+  full: urlForImage(image.asset).width(2400).fit("max").auto("format").url(),
+}));
+
+// Neighbours in the site's own listing order (see POST_BY_SLUG_QUERY):
+// "previous" is the newer post, "next" the older one.
+const previous = post?.previousPost;
+const next = post?.nextPost;
+const previousHref = previous?.slug
+  ? localizedPath(locale, `/post/${previous.slug}`)
+  : null;
+const nextHref = next?.slug ? localizedPath(locale, `/post/${next.slug}`) : null;
+
+// First post of the list: there is nothing newer to link to, so the previous
+// slot points back to the index instead.
+const indexHref = localizedPath(locale, "/");
+
+const previousLabel = uiText("previousPost", locale);
+const nextLabel = uiText("nextPost", locale);
+const allPostsLabel = uiText("allPosts", locale);
 ---
-<article class="container mx-auto px-4 py-10 max-w-3xl prose dark:prose-invert">
+
+<article
+  class="container mx-auto px-4 py-10 max-w-3xl prose dark:prose-invert"
+>
   <h1>{post.title}</h1>
-  {(post.author || dateLabel) && (
-    <p class="text-muted-foreground text-sm not-prose mb-6">
-      {post.author?.name && (
-        <a class="hover:underline" href={localizedPath(locale, `/author/${post.author.slug}`)}>
-          {post.author.name}
-        </a>
-      )}
-      {post.author?.name && dateLabel && " · "}
-      {dateLabel}
-    </p>
-  )}
-  {post.mainImage && (
-    <SanityImage node={post.mainImage} width={960} />
-  )}
+
+  {
+    coverUrl && (
+      <button
+        type="button"
+        data-lightbox-src={coverUrl}
+        data-lightbox-alt={cover.alt ?? post.title ?? ""}
+        aria-label="View image larger"
+        class="not-prose mx-auto mb-4 block w-full max-w-md cursor-zoom-in overflow-hidden rounded-lg border border-border bg-card p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        <img
+          src={coverUrl}
+          alt={cover.alt ?? ""}
+          loading="lazy"
+          class="w-full transition-transform duration-300 hover:scale-[1.02]"
+        />
+      </button>
+    )
+  }
+
+  {
+    galleryItems.length > 0 && (
+      <PostImageGallery images={galleryItems} locale={locale} />
+    )
+  }
+
   {post.body && <PortableText value={post.body} />}
-  {post.categories?.length > 0 && (
-    <ul class="not-prose flex flex-wrap gap-2 mt-8">
-      {post.categories.map((c: any) => (
-        <li>
+
+  {
+    post.categories?.length > 0 && (
+      <ul class="not-prose flex flex-wrap justify-start gap-2 mt-8">
+        {post.categories.map((c: any) => (
+          <li>
+            <a
+              href={localizedPath(locale, `/category/${c.slug}`)}
+              class="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/80"
+            >
+              {c.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  {/* Bottom of the post: publish date, then the links onwards. Every post
+      shows its previous post (the newer one) and its next post (the older
+      one); the first post of the list has no previous post, so that slot links
+      back to the index instead. */}
+  <footer class="not-prose mt-12 border-t border-border pt-5">
+    {dateLabel && <p class="text-sm text-muted-foreground">{dateLabel}</p>}
+
+    <nav class="mt-5 flex flex-wrap gap-3" aria-label={uiText("postNavigation", locale)}>
+      {
+        previousHref ? (
           <a
-            href={localizedPath(locale, `/category/${c.slug}`)}
-            class="text-xs px-2 py-1 rounded bg-muted hover:bg-muted/70"
+            href={previousHref}
+            class="group flex flex-1 basis-64 items-center justify-center gap-3 rounded-lg border border-border bg-card p-4 text-card-foreground transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            {c.title}
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              class="size-5 shrink-0 transition-transform duration-200 group-hover:-translate-x-1"
+            >
+              <path d="M19 12H5M11 18l-6-6 6-6" />
+            </svg>
+            <span class="flex min-w-0 flex-col items-center">
+              <span class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {previousLabel}
+              </span>
+              <span class="truncate font-semibold transition-colors group-hover:text-primary">
+                {previous.title}
+              </span>
+            </span>
           </a>
-        </li>
-      ))}
-    </ul>
-  )}
+        ) : (
+          <a
+            href={indexHref}
+            class="group flex flex-1 basis-64 items-center justify-center gap-3 rounded-lg border border-border bg-card p-4 text-card-foreground transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              class="size-5 shrink-0"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span class="font-semibold transition-colors group-hover:text-primary">
+              {allPostsLabel}
+            </span>
+          </a>
+        )
+      }
+      {
+        nextHref && (
+          <a
+            href={nextHref}
+            class="group flex flex-1 basis-64 items-center justify-center gap-3 rounded-lg border border-border bg-card p-4 text-card-foreground transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <span class="flex min-w-0 flex-col items-center">
+              <span class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {nextLabel}
+              </span>
+              <span class="truncate font-semibold transition-colors group-hover:text-primary">
+                {next.title}
+              </span>
+            </span>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              class="size-5 shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
+        )
+      }
+    </nav>
+  </footer>
 </article>
+
+{/* Lightbox: clicking any post image opens it at full size. Esc or a click
+    on the backdrop closes it, arrow keys / the side buttons move between
+    images. Display is driven from JS (inline style) so Tailwind's `hidden`
+    never fights the flex layout. */}
+<div
+  id="lightbox"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Image viewer"
+  tabindex="-1"
+  style="display: none;"
+  class="fixed inset-0 z-100 [touch-action:pan-y_pinch-zoom] items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+>
+  <button
+    type="button"
+    data-lightbox-close
+    aria-label="Close"
+    class="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white/90 transition-colors hover:bg-white/20"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-5">
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  </button>
+  <button
+    type="button"
+    data-lightbox-prev
+    aria-label="Previous image"
+    class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white/90 transition-colors hover:bg-white/20 sm:left-4"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-5">
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  </button>
+  <img
+    id="lightbox-image"
+    src=""
+    alt=""
+    draggable="false"
+    class="h-auto max-h-[95svh] w-auto max-w-[95vw] [touch-action:pan-y_pinch-zoom] object-contain select-none"
+  />
+  <button
+    type="button"
+    data-lightbox-next
+    aria-label="Next image"
+    class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white/90 transition-colors hover:bg-white/20 sm:right-4"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-5">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  </button>
+</div>
+
+<script>
+  const triggers = Array.from(
+    document.querySelectorAll<HTMLButtonElement>("[data-lightbox-src]"),
+  );
+
+  const overlay = document.getElementById("lightbox");
+  const image = document.getElementById("lightbox-image");
+
+  if (overlay && image && triggers.length) {
+    const imageEl = image as HTMLImageElement;
+    const closeBtn = overlay.querySelector("[data-lightbox-close]");
+    const prevBtn = overlay.querySelector("[data-lightbox-prev]");
+    const nextBtn = overlay.querySelector("[data-lightbox-next]");
+    const multi = triggers.length > 1;
+    let current = 0;
+
+    if (prevBtn) (prevBtn as HTMLElement).style.display = multi ? "" : "none";
+    if (nextBtn) (nextBtn as HTMLElement).style.display = multi ? "" : "none";
+
+    const show = (index: number) => {
+      current = (index + triggers.length) % triggers.length;
+      const trigger = triggers[current];
+      imageEl.src = trigger.dataset.lightboxSrc ?? "";
+      imageEl.alt = trigger.dataset.lightboxAlt ?? "";
+      imageEl.style.transform = "";
+      overlay.style.display = "flex";
+      document.body.style.overflow = "hidden";
+      (overlay as HTMLElement).focus();
+    };
+
+    const close = () => {
+      overlay.style.display = "none";
+      imageEl.removeAttribute("src");
+      document.body.style.overflow = "";
+      triggers[current]?.focus();
+    };
+
+    triggers.forEach((trigger, index) => {
+      trigger.addEventListener("click", () => show(index));
+    });
+
+    closeBtn?.addEventListener("click", close);
+    prevBtn?.addEventListener("click", () => show(current - 1));
+    nextBtn?.addEventListener("click", () => show(current + 1));
+
+    /* Swiping sideways moves to the previous/next image, which is the gesture
+       a phone user reaches for once the picture fills the screen. The overlay
+       and the image carry `touch-action: pan-y pinch-zoom`, so the horizontal
+       axis is ours even when the page itself is zoomed in and could otherwise
+       pan instead; a pinch still zooms, and a two-finger gesture is left alone
+       because only the primary pointer is tracked. */
+    const SWIPE_MIN = 40; // px a drag must travel before it counts as a swipe
+    let drag: { id: number; x: number; y: number } | null = null;
+    let dragX = 0;
+    let swallowedClick = false;
+
+    const endDrag = () => {
+      drag = null;
+      dragX = 0;
+      imageEl.style.transition = "transform 180ms ease-out";
+      imageEl.style.transform = "";
+      window.setTimeout(() => {
+        imageEl.style.transition = "";
+      }, 200);
+    };
+
+    overlay.addEventListener("pointerdown", (event) => {
+      const target = event.target as HTMLElement | null;
+      if (!multi || !event.isPrimary || drag) return;
+      if (target?.closest("[data-lightbox-close], [data-lightbox-prev], [data-lightbox-next]")) return;
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      dragX = 0;
+      imageEl.style.transition = "";
+    });
+
+    overlay.addEventListener("pointermove", (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const dx = event.clientX - drag.x;
+      // A mostly vertical drag belongs to the browser, not to us.
+      if (Math.abs(dx) < Math.abs(event.clientY - drag.y)) return;
+      dragX = dx;
+      imageEl.style.transform = `translateX(${dx}px)`;
+    });
+
+    overlay.addEventListener("pointerup", (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const dx = dragX;
+      endDrag();
+      if (Math.abs(dx) < SWIPE_MIN) return;
+      // A mouse drag is followed by a click on the backdrop, which must not
+      // close the viewer. A touch swipe is not, so the guard expires on its
+      // own rather than waiting for a click that may never come.
+      swallowedClick = true;
+      window.setTimeout(() => {
+        swallowedClick = false;
+      }, 400);
+      show(current + (dx < 0 ? 1 : -1));
+    });
+
+    overlay.addEventListener("pointercancel", () => {
+      if (drag) endDrag();
+    });
+
+    overlay.addEventListener("click", (event) => {
+      if (swallowedClick) {
+        swallowedClick = false;
+        return;
+      }
+      if (event.target === overlay) close();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (overlay.style.display === "none") return;
+      if (event.key === "Escape") close();
+      if (event.key === "ArrowLeft" && multi) show(current - 1);
+      if (event.key === "ArrowRight" && multi) show(current + 1);
+    });
+  }
+</script>

@@ -4,11 +4,11 @@ import { authorType } from "./author";
 import { blockContentType } from "./blockContent";
 import { categoryType } from "./category";
 import { footerType } from "./footer";
-import { landingType } from "./landing";
 import { navigationType } from "./navigation";
 import { pageType } from "./page";
 import { postType } from "./post";
 import { siteSettingsType } from "./siteSettings";
+import { themeFontsType, themePaletteType, themeType } from "./theme";
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -16,10 +16,13 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     blockContentType,
     categoryType,
     footerType,
-    landingType,
     navigationType,
     pageType,
     postType,
     siteSettingsType,
+    themeType,
+    // Object types referenced by `theme.light` / `theme.dark` / `theme.fonts`.
+    themePaletteType,
+    themeFontsType,
   ],
 };

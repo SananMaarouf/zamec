@@ -11,9 +11,11 @@ interface Props {
   image?: { asset?: any; alt?: string };
   /** Path *without* the locale prefix, e.g. `/post/hello`. */
   path?: string;
+  /** Emit `robots: noindex` and skip canonical/hreflang (error pages). */
+  noindex?: boolean;
 }
 
-const { locale, title, description, image, path = "/" } = Astro.props;
+const { locale, title, description, image, path = "/", noindex = false } = Astro.props;
 
 const { data: settings } = await loadQuery<any>({
   query: SITE_SETTINGS_QUERY,
@@ -34,16 +36,22 @@ const canonical = `${baseUrl}${localizedPath(locale, path)}`;
 ---
 <title>{fullTitle}</title>
 <meta name="description" content={desc} />
-<link rel="canonical" href={canonical} />
+{noindex ? (
+  <meta name="robots" content="noindex, follow" />
+) : (
+  <>
+    <link rel="canonical" href={canonical} />
 
-{LOCALES.map((alt) => (
-  <link
-    rel="alternate"
-    hreflang={alt}
-    href={`${baseUrl}${localizedPath(alt, path)}`}
-  />
-))}
-<link rel="alternate" hreflang="x-default" href={`${baseUrl}${localizedPath("en", path)}`} />
+    {LOCALES.map((alt) => (
+      <link
+        rel="alternate"
+        hreflang={alt}
+        href={`${baseUrl}${localizedPath(alt, path)}`}
+      />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${baseUrl}${localizedPath("en", path)}`} />
+  </>
+)}
 
 <meta property="og:type" content="website" />
 <meta property="og:title" content={fullTitle} />
