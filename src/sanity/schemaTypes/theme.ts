@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
 import {
   ADVANCED_GROUP,
   DEFAULT_DARK_PALETTE,
@@ -138,6 +139,7 @@ export const themeType = defineType({
   name: "theme",
   title: "Theme",
   type: "document",
+  description: DOCUMENT_GUIDES.theme,
   // Tabs, so the color palettes do not bury the font choices (and vice versa).
   groups: [
     { name: "colors", title: "Colors", default: true },
@@ -204,7 +206,8 @@ export const themeType = defineType({
     }),
   ],
   preview: {
-    select: { title: "title" },
-    prepare: ({ title }) => ({ title: title || "Theme" }),
+    // Singleton: the form header uses this as the pane heading, so explain the
+    // document rather than repeating its name.
+    prepare: () => ({ title: DOCUMENT_GUIDES.theme }),
   },
 });

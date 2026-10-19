@@ -1,9 +1,12 @@
 import { defineField, defineType } from "sanity";
 
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
+
 export const pageType = defineType({
   name: "page",
   title: "Page",
   type: "document",
+  description: DOCUMENT_GUIDES.page,
   fields: [
     defineField({
       name: "title",

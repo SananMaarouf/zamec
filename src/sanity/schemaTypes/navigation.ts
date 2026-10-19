@@ -1,9 +1,12 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
+
 export const navigationType = defineType({
   name: "navigation",
   title: "Navigation",
   type: "document",
+  description: DOCUMENT_GUIDES.navigation,
   fields: [
     defineField({
       name: "title",

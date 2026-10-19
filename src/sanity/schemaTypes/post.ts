@@ -1,8 +1,11 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+import { DOCUMENT_GUIDES } from "../lib/document-guides";
+
 export const postType = defineType({
   name: "post",
   type: "document",
+  description: DOCUMENT_GUIDES.post,
   fields: [
     defineField({
       name: "title",
