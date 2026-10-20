@@ -81,7 +81,7 @@ Prosjekt som vises i galleriet på forsiden.
 | Felt | Betyr |
 |---|---|
 | Title | Tittel, per språk |
-| Slug | Adressen til innlegget (`/post/min-side`). Genereres fra tittelen |
+| Slug | Adressen til innlegget (`/post/min-side`). Fylles ut automatisk fra den engelske tittelen – du trenger ikke trykke på noe. Endre den bare hvis adressen skal være noe annet |
 | SEO description | Teksten som vises under tittelen i Google og når lenken deles. 120–160 tegn. Tomt = starten av brødteksten brukes |
 | Cover image | Forsidebilde i galleriet. Tomt = første bilde i galleriet brukes |
 | Gallery images | Alle bildene i innlegget. Dra for å endre rekkefølge |
@@ -127,12 +127,13 @@ Feltene som styrer hvordan nettstedet ser ut i Google og når en lenke deles:
 
 ## Vanlige oppgaver
 
-**Nytt innlegg:** Content → Innlegg → **Create new** → fyll ut tittel, slug,
-bilder, kategori og publiser.
+**Nytt innlegg:** Content → Innlegg → **Create new** → fyll ut tittel (slug
+lager seg selv), bilder, kategori og publiser.
 
 **Endre menyen:** Content → Navigation → endre label/lenke → Publish.
 
-**Ny side:** Content → Side → **Create new** → tittel, slug, innhold → Publish.
+**Ny side:** Content → Side → **Create new** → tittel (slug lager seg selv),
+innhold → Publish.
 
 **Endre farge:** Content → Tema → Colors → velg farge → Publish.
 

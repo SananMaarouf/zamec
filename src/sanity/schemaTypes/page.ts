@@ -1,6 +1,8 @@
 import { defineField, defineType } from "sanity";
 
+import { AutoSlugInput } from "../components/auto-slug-input";
 import { DOCUMENT_GUIDES } from "../lib/document-guides";
+import { englishText, type I18nStringItem } from "../lib/slug";
 
 export const pageType = defineType({
   name: "page",
@@ -16,13 +18,13 @@ export const pageType = defineType({
     defineField({
       name: "slug",
       type: "slug",
+      description:
+        "Fills itself from the English title. Only edit it if you need a different URL.",
       options: {
-        source: (doc) => {
-          const titles = doc.title as Array<{ value: string; _key: string }> | undefined;
-          return titles?.[0]?.value || "";
-        },
+        source: (doc) => englishText(doc.title as I18nStringItem[]),
         maxLength: 96,
       },
+      components: { input: AutoSlugInput },
       validation: (rule) => rule.required(),
     }),
     defineField({
