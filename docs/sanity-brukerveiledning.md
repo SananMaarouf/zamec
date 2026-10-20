@@ -82,6 +82,7 @@ Prosjekt som vises i galleriet på forsiden.
 |---|---|
 | Title | Tittel, per språk |
 | Slug | Adressen til innlegget (`/post/min-side`). Genereres fra tittelen |
+| SEO description | Teksten som vises under tittelen i Google og når lenken deles. 120–160 tegn. Tomt = starten av brødteksten brukes |
 | Cover image | Forsidebilde i galleriet. Tomt = første bilde i galleriet brukes |
 | Gallery images | Alle bildene i innlegget. Dra for å endre rekkefølge |
 | Categories | Én eller flere kategorier |
@@ -96,7 +97,25 @@ listeside. `Description` er valgfri.
 ### Side (page)
 
 Frittstående side, f.eks. Om meg eller Kontakt. Adressen kommer fra `Slug`.
-`SEO description` er teksten som vises i søkeresultater.
+`SEO description` er teksten som vises under tittelen i Google og når lenken
+deles (120–160 tegn). Tomt felt = beskrivelsen fra Innstillinger brukes.
+
+## Søk og deling (SEO)
+
+Feltene som styrer hvordan nettstedet ser ut i Google og når en lenke deles:
+
+| Hvor | Felt | Betyr |
+|---|---|---|
+| Innstillinger | Site title | Tittelen som vises i søkeresultater og i nettleserfanen |
+| Innstillinger | Site description | Standardbeskrivelse for alle sider som ikke har sin egen |
+| Innstillinger | Share image (link previews) | Standardbilde når lenken deles |
+| Side / Innlegg | SEO description | Beskrivelse for akkurat den siden |
+| Side / Innlegg | Share image (link previews) | Bilde for akkurat den siden |
+
+- 120–160 tegn er det som vises. Lengre tekst blir kuttet – Studio viser en
+  advarsel når du passerer 160.
+- Bilder bør være liggende, ca. 1200 × 630 px.
+- Endringer slår først inn når Google har besøkt siden på nytt. Det kan ta dager.
 
 ## Bilder
 

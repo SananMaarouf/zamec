@@ -18,6 +18,17 @@ export const siteSettingsType = defineType({
       name: "description",
       title: "Site description",
       type: "internationalizedArrayText",
+      description:
+        "One or two sentences about the site, used as the description in Google results and link previews for any page that does not have its own. Aim for 120–160 characters; longer text is cut off.",
+      validation: (rule) =>
+        rule
+          .custom((items: any) =>
+            Array.isArray(items) &&
+            items.some((item) => (item?.value?.length ?? 0) > 160)
+              ? "One of these is longer than 160 characters — search results and link previews will cut it off."
+              : true
+          )
+          .warning(),
     }),
     defineField({
       name: "ogImage",

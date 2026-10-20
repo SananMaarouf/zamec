@@ -15,7 +15,7 @@ const { data: posts } = await loadQuery<any[]>({
   params: { locale },
 });
 ---
-<Layout locale={locale} path="/">
+<Layout locale={locale} path="/" isHome>
   <section class="container mx-auto px-4 py-10">
     <PostGallery posts={posts ?? []} locale={locale} />
   </section>

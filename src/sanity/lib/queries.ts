@@ -23,6 +23,9 @@ export const POST_BY_SLUG_QUERY = defineQuery(`
   *[_type == "post" && slug.current == $slug][0]{
     "title":       coalesce(title[language == $locale][0].value, title[0].value),
     "body":        coalesce(body[language == $locale][0].value,  body[0].value),
+    // Optional hand-written description; the page falls back to the opening of
+    // the body text when this is empty.
+    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),
     publishedAt,
     mainImage{ asset, alt },
     images[]{ asset, alt },

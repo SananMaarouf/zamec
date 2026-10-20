@@ -3,6 +3,7 @@ import { loadQuery } from "@/sanity/lib/load-query";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { urlForImage } from "@/sanity/lib/url-for-image";
 import { LOCALES, type Locale, localizedPath } from "@/sanity/lib/locale";
+import { metaDescription } from "@/lib/seo";
 
 interface Props {
   locale: Locale;
@@ -13,9 +14,22 @@ interface Props {
   path?: string;
   /** Emit `robots: noindex` and skip canonical/hreflang (error pages). */
   noindex?: boolean;
+  /** `article` on blog posts, so crawlers and sharing clients get article metadata. */
+  type?: "website" | "article";
+  /** ISO date the post was published; emits `article:published_time`. */
+  publishedAt?: string;
 }
 
-const { locale, title, description, image, path = "/", noindex = false } = Astro.props;
+const {
+  locale,
+  title,
+  description,
+  image,
+  path = "/",
+  noindex = false,
+  type = "website",
+  publishedAt,
+} = Astro.props;
 
 const { data: settings } = await loadQuery<any>({
   query: SITE_SETTINGS_QUERY,
@@ -24,18 +38,84 @@ const { data: settings } = await loadQuery<any>({
 
 const siteTitle = settings?.title ?? "Astro + Sanity";
 const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
-const desc = description ?? settings?.description ?? "";
-const baseUrl = settings?.siteUrl ?? Astro.site?.toString().replace(/\/$/, "") ?? "";
+// Trimmed to what search results and previews actually show: CMS fields are
+// free text and would otherwise be cut mid-word.
+const desc = metaDescription(description ?? settings?.description);
+const declaredUrl = settings?.siteUrl?.replace(/\/$/, "");
+const baseUrl = declaredUrl || Astro.site?.toString().replace(/\/$/, "") || "";
 
 const imgSource = image?.asset ?? settings?.ogImage?.asset;
 const ogImageUrl = imgSource
   ? urlForImage(imgSource).width(1200).height(630).fit("crop").url()
   : undefined;
+const imageAlt = image?.alt || settings?.ogImage?.alt || undefined;
 
-const canonical = `${baseUrl}${localizedPath(locale, path)}`;
+// Static output serves every route as a directory (`/post/cats/`), so the
+// canonical uses that form — the same URL the sitemap lists.
+const canonicalPath =
+  path === "/"
+    ? localizedPath(locale, "/")
+    : `${localizedPath(locale, path).replace(/\/+$/, "")}/`;
+const canonical = `${baseUrl}${canonicalPath}`;
+
+const websiteId = `${baseUrl}/#website`;
+
+/**
+ * Structured data (@graph, one per page): the website, the page itself and —
+ * on posts — the article, linked by @id instead of repeated. Undefined values
+ * are dropped by JSON.stringify.
+ */
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": websiteId,
+      url: `${baseUrl}/`,
+      name: siteTitle,
+      inLanguage: locale,
+    },
+    type === "article"
+      ? {
+          "@type": "BlogPosting",
+          "@id": `${canonical}#article`,
+          headline: title,
+          description: desc || undefined,
+          image: ogImageUrl,
+          datePublished: publishedAt || undefined,
+          dateModified: publishedAt || undefined,
+          inLanguage: locale,
+          mainEntityOfPage: { "@id": canonical },
+          isPartOf: { "@id": websiteId },
+          author: { "@type": "Person", name: siteTitle, url: baseUrl },
+          publisher: { "@type": "Person", name: siteTitle },
+        }
+      : path === "/"
+        ? {
+            "@type": "Person",
+            "@id": `${baseUrl}/#person`,
+            name: siteTitle,
+            description: desc || undefined,
+            url: canonical,
+            image: ogImageUrl,
+          }
+        : {
+            "@type": "WebPage",
+            "@id": canonical,
+            url: canonical,
+            name: fullTitle,
+            description: desc || undefined,
+            inLanguage: locale,
+            isPartOf: { "@id": websiteId },
+            primaryImageOfPage: ogImageUrl
+              ? { "@type": "ImageObject", url: ogImageUrl }
+              : undefined,
+          },
+  ],
+};
 ---
 <title>{fullTitle}</title>
-<meta name="description" content={desc} />
+{desc && <meta name="description" content={desc} />}
 {noindex ? (
   <meta name="robots" content="noindex, follow" />
 ) : (
@@ -53,14 +133,26 @@ const canonical = `${baseUrl}${localizedPath(locale, path)}`;
   </>
 )}
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={siteTitle} />
 <meta property="og:title" content={fullTitle} />
-<meta property="og:description" content={desc} />
+{desc && <meta property="og:description" content={desc} />}
 <meta property="og:url" content={canonical} />
 <meta property="og:locale" content={locale} />
 {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+{ogImageUrl && <meta property="og:image:width" content="1200" />}
+{ogImageUrl && <meta property="og:image:height" content="630" />}
+{imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+{publishedAt && type === "article" && (
+  <meta property="article:published_time" content={publishedAt} />
+)}
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
-<meta name="twitter:description" content={desc} />
+{desc && <meta name="twitter:description" content={desc} />}
 {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+{imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
+
+{!noindex && (
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+)}

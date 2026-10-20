@@ -4,6 +4,7 @@ import PostPage from "@/components/PostPage.astro";
 import { loadQuery } from "@/sanity/lib/load-query";
 import { POST_SLUGS_QUERY, POST_BY_SLUG_QUERY } from "@/sanity/lib/queries";
 import { DEFAULT_LOCALE } from "@/sanity/lib/locale";
+import { textFromBlocks } from "@/lib/seo";
 
 export async function getStaticPaths() {
   const { data } = await loadQuery<Array<{ slug: string }>>({
@@ -26,9 +27,11 @@ if (!post) throw new Error(`Post not found: ${slug}`);
 <Layout
   locale={locale}
   title={post.title}
-  description={post.body?.[0]?.children?.[0]?.text}
+  description={post.seoDescription ?? textFromBlocks(post.body)}
   image={post.mainImage ?? post.images?.[0]}
   path={`/post/${slug}`}
+  type="article"
+  publishedAt={post.publishedAt}
 >
   <PostPage post={post} locale={locale} />
 </Layout>

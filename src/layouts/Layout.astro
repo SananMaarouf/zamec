@@ -20,10 +20,29 @@ interface Props {
   path?: string;
   /** Error pages: emit `robots: noindex` and skip canonical/hreflang. */
   noindex?: boolean;
+  /** `article` on blog posts, `website` everywhere else. */
+  type?: "website" | "article";
+  /** ISO publish date, for `article:published_time` and JSON-LD. */
+  publishedAt?: string;
+  /**
+   * Home page only: the page has no visible heading of its own (it opens
+   * straight into the gallery), so emit the site title as a screen-reader-only
+   * H1 — crawlers and assistive tech otherwise see a heading-less document.
+   */
+  isHome?: boolean;
 }
 
 const locale = resolveLocale(Astro.props.locale ?? Astro.currentLocale);
-const { title, description, image, path = "/", noindex = false } = Astro.props;
+const {
+  title,
+  description,
+  image,
+  path = "/",
+  noindex = false,
+  type = "website",
+  publishedAt,
+  isHome = false,
+} = Astro.props;
 
 // The palette is language-neutral and identical for every locale, so its GROQ
 // query is locale-free and memoized across pages (see `theme-query.ts`), while
@@ -98,6 +117,8 @@ if (!menu.some((item) => item.url === contactUrl)) {
       image={image}
       path={path}
       noindex={noindex}
+      type={type}
+      publishedAt={publishedAt}
     />
     {themeCss && <style is:inline set:html={themeCss} />}
     <script is:inline>
@@ -122,6 +143,7 @@ if (!menu.some((item) => item.url === contactUrl)) {
       <LanguageSwitch slot="mobileExtras" />
     </Navbar>
     <main class="flex-1">
+      {isHome && <h1 class="sr-only">{navTitle}</h1>}
       <slot />
     </main>
     <Footer />

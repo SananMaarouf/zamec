@@ -46,6 +46,10 @@ Studio opens at <http://localhost:3333> (or use the hosted Sanity Studio at mana
 - Tailwind CSS + shadcn UI setup
 - Localized contact page (`/contact`, `/nb/contact`) with a TanStack Form + Zod
   form that POSTs to a Formspree endpoint (`FORMSPREE_URL`)
+- SEO defaults wired into the layout: per-page title/description, canonical,
+  `hreflang` for both locales + `x-default`, Open Graph and Twitter cards with a
+  1200×630 share image, generated `sitemap-index.xml` (`@astrojs/sitemap`) and
+  a generated `robots.txt`, plus `WebSite`/`WebPage`/`BlogPosting` JSON-LD
 
 ## Prerequisites
 
@@ -378,6 +382,8 @@ Other notes:
 | Fallback palette / font stacks / base typography | `src/styles/global.css` |
 | Add or adjust data fetching | `src/sanity/lib/queries.ts` |
 | Update layouts/components | `src/layouts/*`, `src/components/*` |
+| SEO head (title, description, canonical, OG, JSON-LD) | `src/components/SEO.astro`, helpers in `src/lib/seo.ts` |
+| Sitemap + robots | `astro.config.mjs` (`@astrojs/sitemap`), `src/pages/robots.txt.ts` |
 | Update routes/pages | `src/pages/*` |
 | 404 copy / markup | `src/components/NotFound.astro`; routes in `src/pages/404.astro` + `src/pages/[locale]/404.astro`; served by `nginx.conf` `error_page` |
 | Contact page copy + form | `src/lib/ui-strings.ts` (`contact*`), `src/components/ContactPage.astro`, `src/components/react/contact-form.tsx`; routes in `src/pages/contact.astro` + `src/pages/[locale]/contact.astro` |
