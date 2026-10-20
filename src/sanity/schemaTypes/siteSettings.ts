@@ -21,11 +21,19 @@ export const siteSettingsType = defineType({
     }),
     defineField({
       name: "ogImage",
-      title: "Default OG Image",
+      title: "Share image (link previews)",
       type: "image",
+      description:
+        "The picture shown next to a link to the site when it is shared in social media or messaging apps (Facebook, LinkedIn, WhatsApp, iMessage, Slack). Used for every page that does not have its own share image. Landscape JPG or PNG, around 1200 × 630 px.",
       options: { hotspot: true },
       fields: [
-        { name: "alt", type: "string", title: "Alternative Text" },
+        {
+          name: "alt",
+          type: "string",
+          title: "Alternative Text",
+          description:
+            "Describes the picture for screen readers and for anyone who cannot load images.",
+        },
       ],
     }),
     defineField({

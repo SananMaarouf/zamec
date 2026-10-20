@@ -25,6 +25,7 @@ Hurtigtaster:
 - Nettsiden bygges automatisk på nytt når du publiserer. Det tar vanligvis et
   par minutter før endringen vises.
 
+
 ## Språk
 
 Alt tekstinnhold finnes på to språk: **English** (`en`) og **Norsk bokmål** (`nb`).
@@ -44,7 +45,7 @@ ligger der.
 |---|---|
 | Site title | Firmanavn/tittel som brukes i meny og metadata |
 | Site description | Kort beskrivelse (SEO og deling) |
-| Default OG Image | Standardbilde for deling i sosiale medier |
+| Share image (link previews) | Bildet som vises ved siden av lenken når nettstedet deles i sosiale medier eller meldinger. Brukes på alle sider som ikke har sitt eget delebilde. Liggende JPG/PNG, ca. 1200 × 630 px |
 | Site URL | Nettadressen, f.eks. `https://sarazamecznik.no` |
 
 ### Navigasjon (singleton)

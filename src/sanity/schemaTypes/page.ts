@@ -36,11 +36,19 @@ export const pageType = defineType({
     }),
     defineField({
       name: "ogImage",
-      title: "OG image",
+      title: "Share image (link previews)",
       type: "image",
+      description:
+        "The picture shown next to a link to this page when it is shared in social media or messaging apps (Facebook, LinkedIn, WhatsApp, iMessage, Slack). Leave empty to use the site-wide share image from Site Settings. Landscape JPG or PNG, around 1200 × 630 px.",
       options: { hotspot: true },
       fields: [
-        { name: "alt", type: "string", title: "Alternative Text" },
+        {
+          name: "alt",
+          type: "string",
+          title: "Alternative Text",
+          description:
+            "Describes the picture for screen readers and for anyone who cannot load images.",
+        },
       ],
     }),
   ],
