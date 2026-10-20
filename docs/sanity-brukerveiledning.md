@@ -46,7 +46,6 @@ ligger der.
 | Site description | Kort beskrivelse (SEO og deling) |
 | Default OG Image | Standardbilde for deling i sosiale medier |
 | Site URL | Nettadressen, f.eks. `https://sarazamecznik.no` |
-| Primary Navigation | Hvilken navigasjon som brukes (velg den som heter Navigation) |
 
 ### Navigasjon (singleton)
 

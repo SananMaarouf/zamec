@@ -23,10 +23,10 @@ const studioClient = createClient({
 /**
  * Fixed-id singletons (`siteSettings`, `theme`, `footer`) already exist under
  * their type name. `navigation` does not: the dataset predates the singleton
- * and stores the menu under a generated id, which Site Settings references.
- * Opening a fixed, non-existent id would show an empty menu in the Studio
- * while the site kept rendering the real one, so resolve the document that is
- * actually there and only fall back to the fixed id when none exists.
+ * and stores the menu under a generated id. Opening a fixed, non-existent id
+ * would show an empty menu in the Studio while the site kept rendering the
+ * real one, so resolve the document that is actually there and only fall back
+ * to the fixed id when none exists.
  */
 async function existingDocumentId(type: SingletonName): Promise<string> {
   try {

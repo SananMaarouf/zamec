@@ -182,13 +182,6 @@ export type SanityImageAssetReference = {
   [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
-export type NavigationReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "navigation";
-};
-
 export type SiteSettings = {
   _id: string;
   _type: "siteSettings";
@@ -206,7 +199,6 @@ export type SiteSettings = {
     _type: "image";
   };
   siteUrl?: string;
-  primaryNav?: NavigationReference;
 };
 
 export type SanityImageCrop = {
@@ -513,7 +505,6 @@ export type AllSanitySchemaTypes =
   | ThemePalette
   | Theme
   | SanityImageAssetReference
-  | NavigationReference
   | SiteSettings
   | SanityImageCrop
   | SanityImageHotspot
@@ -651,7 +642,7 @@ export type PAGE_BY_SLUG_QUERY_RESULT = {
 
 // Source: src/sanity/lib/queries.ts
 // Variable: SITE_SETTINGS_QUERY
-// Query: *[_type == "siteSettings"][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "description": coalesce(description[language == $locale][0].value, description[0].value),    siteUrl,    ogImage,    "primaryNav": primaryNav->{      items[]{        "label": coalesce(label[language == $locale][0].value, label[0].value),        href,        "internalRef": internalRef->{ _type, "slug": slug.current }      }    }  }
+// Query: *[_type == "siteSettings"][0]{    "title":       coalesce(title[language == $locale][0].value, title[0].value),    "description": coalesce(description[language == $locale][0].value, description[0].value),    siteUrl,    ogImage,    // The menu is its own singleton (see structure.ts), so it is fetched by    // type instead of through a reference on this document.    "navigation": *[_type == "navigation"][0]{      items[]{        "label": coalesce(label[language == $locale][0].value, label[0].value),        href,        "internalRef": internalRef->{ _type, "slug": slug.current }      }    }  }
 export type SITE_SETTINGS_QUERY_RESULT = {
   title: string | null;
   description: string | null;
@@ -664,7 +655,7 @@ export type SITE_SETTINGS_QUERY_RESULT = {
     alt?: string;
     _type: "image";
   } | null;
-  primaryNav: {
+  navigation: {
     items: Array<{
       label: string | null;
       href: string | null;
@@ -717,7 +708,7 @@ declare global {
     '\n  *[_type == "category" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    "slug":        slug.current,\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc, _id asc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt },\n      images[]{ asset, alt }\n    }\n  }\n': CATEGORY_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "page" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': PAGE_SLUGS_QUERY_RESULT;
     '\n  *[_type == "page" && slug.current == $slug][0]{\n    "title":          coalesce(title[language == $locale][0].value, title[0].value),\n    "body":           coalesce(body[language == $locale][0].value, body[0].value),\n    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),\n    "slug":           slug.current,\n    ogImage\n  }\n': PAGE_BY_SLUG_QUERY_RESULT;
-    '\n  *[_type == "siteSettings"][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    siteUrl,\n    ogImage,\n    "primaryNav": primaryNav->{\n      items[]{\n        "label": coalesce(label[language == $locale][0].value, label[0].value),\n        href,\n        "internalRef": internalRef->{ _type, "slug": slug.current }\n      }\n    }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
+    '\n  *[_type == "siteSettings"][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    siteUrl,\n    ogImage,\n    // The menu is its own singleton (see structure.ts), so it is fetched by\n    // type instead of through a reference on this document.\n    "navigation": *[_type == "navigation"][0]{\n      items[]{\n        "label": coalesce(label[language == $locale][0].value, label[0].value),\n        href,\n        "internalRef": internalRef->{ _type, "slug": slug.current }\n      }\n    }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
     '\n  *[_type == "footer"][0]{\n    instagramURL,\n    cellNumber,\n    email,\n    "address":   coalesce(address[language == $locale][0].value, address[0].value),\n    "copyright": coalesce(copyright[language == $locale][0].value, copyright[0].value)\n  }\n': FOOTER_QUERY_RESULT;
     '\n  *[_type == "theme"][0]{\n    radius,\n    light,\n    dark,\n    fonts\n  }\n': THEME_QUERY_RESULT;
   }

@@ -45,7 +45,7 @@ const fontsHref = themeFontsHref(theme);
 const navTitle = settings?.title ?? "Astro × Sanity";
 
 // Resolve CMS-driven nav items into the shape the React Navbar wants.
-const menu: MenuItem[] = (settings?.primaryNav?.items ?? [])
+const menu: MenuItem[] = (settings?.navigation?.items ?? [])
   .map((item: any): MenuItem | null => {
     const ref = item.internalRef;
     let url = item.href ?? "";

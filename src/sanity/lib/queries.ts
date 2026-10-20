@@ -123,7 +123,9 @@ export const SITE_SETTINGS_QUERY = defineQuery(`
     "description": coalesce(description[language == $locale][0].value, description[0].value),
     siteUrl,
     ogImage,
-    "primaryNav": primaryNav->{
+    // The menu is its own singleton (see structure.ts), so it is fetched by
+    // type instead of through a reference on this document.
+    "navigation": *[_type == "navigation"][0]{
       items[]{
         "label": coalesce(label[language == $locale][0].value, label[0].value),
         href,

@@ -34,12 +34,6 @@ export const siteSettingsType = defineType({
       type: "url",
       description: "Public canonical URL (e.g. https://example.com).",
     }),
-    defineField({
-      name: "primaryNav",
-      title: "Primary Navigation",
-      type: "reference",
-      to: [{ type: "navigation" }],
-    }),
   ],
   preview: {
     // This document is opened as a singleton (id === type name), so the form
