@@ -46,7 +46,7 @@ ligger der.
 | Site title | Firmanavn/tittel som brukes i meny og metadata |
 | Site description | Kort beskrivelse (SEO og deling) |
 | Share image (link previews) | Bildet som vises ved siden av lenken når nettstedet deles i sosiale medier eller meldinger. Brukes på alle sider som ikke har sitt eget delebilde. Liggende JPG/PNG, ca. 1200 × 630 px |
-| Site URL | Nettadressen, f.eks. `https://sarazamecznik.no` |
+| Site URL | Nettadressen, f.eks. `https://www.sarazamecznik.com` |
 
 ### Navigasjon (singleton)
 
