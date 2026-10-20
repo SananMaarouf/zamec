@@ -6,12 +6,18 @@
  * The heading and intro come from the CMS `page` document with slug `contact`
  * when one is published, so editors can rewrite the copy in the Studio; the
  * localized strings in `ui-strings` are the fallback for a site without it.
- * The form itself is template-owned chrome — its labels live in the island.
+ * The form itself is template-owned chrome — its labels live in the island,
+ * with optional wording overrides from the same document.
+ *
+ * The optional "other ways to get in touch" column is editorial content too:
+ * it renders beside the form only when `contactDetails` rows exist, so emptying
+ * them in the Studio puts the form back on its own.
  */
 import PortableText from "@/components/PortableText.astro";
 import { ContactForm } from "@/components/react/contact-form";
+import { ContactDetails } from "@/components/react/contact-details";
 import { uiText } from "@/lib/ui-strings";
-import { type ContactFormOverrides } from "@/lib/contact";
+import { type ContactChannel, type ContactFormOverrides } from "@/lib/contact";
 import { type Locale } from "@/sanity/lib/locale";
 
 interface Props {
@@ -22,6 +28,11 @@ interface Props {
     body?: any[] | null;
     /** Editorial wording for the form itself (see ContactFormOverrides). */
     contactForm?: ContactFormOverrides | null;
+    /** The optional column beside the form. */
+    contactDetails?: {
+      title?: string | null;
+      items?: ContactChannel[] | null;
+    } | null;
   } | null;
 }
 
@@ -36,31 +47,56 @@ const endpoint = import.meta.env.FORMSPREE_URL;
 const bodyHasText = (page?.body ?? []).some((block: any) =>
   (block.children ?? []).some((child: any) => child.text?.trim()),
 );
+
+// A row earns the second column when it has both a type and a value; rows
+// without both are unfinished Studio work and are skipped.
+const channels = (page?.contactDetails?.items ?? []).filter(
+  (channel) => channel?.platform && channel?.value?.trim(),
+);
+const hasChannels = channels.length > 0;
+const channelsTitle =
+  page?.contactDetails?.title?.trim() || uiText("contactWaysTitle", locale);
 ---
 
-<section class="container mx-auto max-w-2xl px-4 py-12 md:py-16">
-  <h1 class="font-heading text-3xl font-bold text-balance sm:text-4xl">
-    {page?.title ?? uiText("contactTitle", locale)}
-  </h1>
+<section
+  class:list={[
+    "container mx-auto px-4 py-12 md:py-16",
+    hasChannels ? "max-w-5xl" : "max-w-2xl",
+  ]}
+>
+  <div class="max-w-2xl">
+    <h1 class="font-heading text-3xl font-bold text-balance sm:text-4xl">
+      {page?.title ?? uiText("contactTitle", locale)}
+    </h1>
 
-  {
-    bodyHasText ? (
-      <div class="prose dark:prose-invert mt-4 max-w-none">
-        <PortableText value={page?.body ?? []} />
-      </div>
-    ) : (
-      <p class="mt-4 text-pretty text-muted-foreground">
-        {uiText("contactIntro", locale)}
-      </p>
-    )
-  }
+    {
+      bodyHasText ? (
+        <div class="prose dark:prose-invert mt-4 max-w-none">
+          <PortableText value={page?.body ?? []} />
+        </div>
+      ) : (
+        <p class="mt-4 text-pretty text-muted-foreground">
+          {uiText("contactIntro", locale)}
+        </p>
+      )
+    }
+  </div>
 
-  <div class="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
-    <ContactForm
-      client:load
-      endpoint={endpoint}
-      locale={locale}
-      overrides={page?.contactForm ?? undefined}
-    />
+  <div
+    class:list={[
+      "mt-10",
+      hasChannels && "grid gap-6 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start",
+    ]}
+  >
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
+      <ContactForm
+        client:load
+        endpoint={endpoint}
+        locale={locale}
+        overrides={page?.contactForm ?? undefined}
+      />
+    </div>
+
+    {hasChannels && <ContactDetails title={channelsTitle} items={channels} />}
   </div>
 </section>

@@ -47,7 +47,9 @@ Studio opens at <http://localhost:3333> (or use the hosted Sanity Studio at mana
 - Localized contact page (`/contact`, `/nb/contact`) with a TanStack Form + Zod
   form that POSTs to a Formspree endpoint (`FORMSPREE_URL`). The page copy and
   the form's wording come from the **Contact Page** document in the Studio (a
-  `page` document with slug `contact`), with localized fallbacks baked in
+  `page` document with slug `contact`), with localized fallbacks baked in. An
+  optional column beside the form lists phone, email and social links; it only
+  renders when the Studio has rows for it
 - SEO defaults wired into the layout: per-page title/description, canonical,
   `hreflang` for both locales + `x-default`, Open Graph and Twitter cards with a
   1200×630 share image, generated `sitemap-index.xml` (`@astrojs/sitemap`) and
@@ -390,6 +392,7 @@ Other notes:
 | Update routes/pages | `src/pages/*` |
 | 404 copy / markup | `src/components/NotFound.astro`; routes in `src/pages/404.astro` + `src/pages/[locale]/404.astro`; served by `nginx.conf` `error_page` |
 | Contact page copy + form | Copy lives on the `page` document with slug `contact` (Studio: **Contact Page**); built-in fallbacks in `src/lib/ui-strings.ts` (`contact*`); form chrome/CMS overrides in `src/components/react/contact-form.tsx` + `src/lib/contact.ts`; routes in `src/pages/contact.astro` + `src/pages/[locale]/contact.astro` |
+| Contact details column (phone, Instagram, …) | `contactDetails` on the same document; static markup in `src/components/react/contact-details.tsx`, brand marks in `brand-icons.tsx`; column layout in `ContactPage.astro` |
 | Contact link in the menu | Navigation singleton: `showContact` + `contactLabel`, applied in `src/layouts/Layout.astro` |
 
 ## Command reference

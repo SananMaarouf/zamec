@@ -26,6 +26,33 @@ export interface ContactFormOverrides {
   successBody?: string | null;
 }
 
+/** Platforms the contact page knows how to draw an icon and link for. */
+export const CONTACT_PLATFORMS = [
+  "phone",
+  "email",
+  "instagram",
+  "facebook",
+  "youtube",
+  "website",
+] as const;
+
+export type ContactPlatform = (typeof CONTACT_PLATFORMS)[number];
+
+/** One row of the "other ways to get in touch" column. */
+export interface ContactChannel {
+  platform?: ContactPlatform | string | null;
+  /** Phone number, email address, or a full URL — see `channelHref`. */
+  value?: string | null;
+  /** Optional override for the visible text. */
+  label?: string | null;
+}
+
+/** The whole optional column; nothing renders when `items` is empty. */
+export interface ContactDetailsData {
+  title?: string | null;
+  items?: ContactChannel[] | null;
+}
+
 // Props for the contact form island. The endpoint is read at build time from
 // the FORMSPREE_URL env var (see `src/pages/contact.astro`) and baked into the
 // static HTML, so it is public by design — a Formspree form id is not a secret.

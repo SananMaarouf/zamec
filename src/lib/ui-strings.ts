@@ -33,6 +33,11 @@ const UI_STRINGS = {
   contactNav: { en: "Contact", nb: "Kontakt" },
   /** Headline of the contact page. */
   contactTitle: { en: "Contact me", nb: "Kontakt meg" },
+  /** Heading of the "other ways to get in touch" column; CMS value wins. */
+  contactWaysTitle: {
+    en: "Other ways to reach me",
+    nb: "Andre måter å ta kontakt",
+  },
   /** Body copy at the top of the contact page, above the form. */
   contactIntro: {
     en: "Questions about a piece, a commission or an order? Send a message below and I’ll reply as soon as I can.",

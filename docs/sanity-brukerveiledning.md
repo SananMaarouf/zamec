@@ -118,7 +118,21 @@ den – du trenger ikke lete i sidelisten.
 | Contact form → Send button | Teksten på send-knappen. Tomt = «Send message» / «Send melding» |
 | Contact form → Thank-you heading | Overskriften som vises etter at meldingen er sendt |
 | Contact form → Thank-you text | Setningen under takke-overskriften |
+| Other ways to get in touch → Column heading | Valgfri overskrift over kontaktkolonnen. Tomt felt = «Andre måter å ta kontakt» / «Other ways to reach me» |
+| Other ways to get in touch → Contact details | Én rad per kanal som skal vises ved siden av skjemaet (se under) |
 | SEO description / Share image | Som på andre sider |
+
+Kolonnen **Other ways to get in touch** vises bare når den har minst én rad. Hver
+rad har:
+
+| Felt | Betyr |
+|---|---|
+| Type | Telefon, e-post, Instagram, Facebook, YouTube eller nettside. Bestemmer ikonet |
+| Link, number or address | Telefon: nummeret slik du ringer det (`+47 900 12 345`). E-post: adressen. Sosiale medier / nettside: hele lenken (`https://instagram.com/brukernavn`) |
+| Text shown (optional) | Teksten som vises. Tomt felt = nummeret/adressen for telefon og e-post, ellers navnet på kanalen (f.eks. «Instagram»). Skriv f.eks. `@brukernavn` om du vil ha det i stedet |
+
+Rader som mangler type eller innhold vises ikke. Sletter du alle radene,
+forsvinner kolonnen og skjemaet står alene.
 
 Feltene i skjemaet (navn, e-post, emne, melding) og feilmeldingene er en del av
 malen og kan ikke endres her. Vil du ha andre felt, må utvikleren endre dem.
@@ -158,6 +172,11 @@ lager seg selv), bilder, kategori og publiser.
 **Endre kontaktsiden:** Content → Contact Page → endre tekstene (overskrift,
 innledning, tekst i og rundt skjemaet) → Publish. Finnes dokumentet ikke ennå,
 opprettes det med riktig adresse når du åpner det.
+
+**Legge til telefon/Instagram ved skjemaet:** Content → Contact Page → **Other
+ways to get in touch** → fyll ut **Column heading** → **Add item** per kanal →
+velg **Type**, skriv nummer/adresse/lenke → Publish. Vil du fjerne kolonnen,
+slett radene (eller la dem stå tomme) og publiser.
 
 **Fjerne kontaktlenken fra menyen:** Content → Navigation → slå av **Show the
 contact link** → Publish. Siden blir fortsatt liggende på `/contact`.

@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 import { AutoSlugInput } from "../components/auto-slug-input";
 import { DOCUMENT_GUIDES } from "../lib/document-guides";
@@ -73,6 +73,91 @@ export const pageType = defineType({
           type: "internationalizedArrayText",
           description:
             "The sentence under the thank-you heading. Leave empty for the built-in text.",
+        }),
+      ],
+    }),
+    // Second editorial block for the contact page: the "other ways to reach
+    // me" column next to the form. Empty (no rows) means the page renders the
+    // form alone, so nothing has to be deleted from code when a channel goes.
+    defineField({
+      name: "contactDetails",
+      title: "Other ways to get in touch",
+      type: "object",
+      description:
+        "Shown in a column beside the contact form. If you leave this empty, or delete every row, the page shows the form on its own.",
+      hidden: ({ document }) =>
+        (document?.slug as { current?: string } | undefined)?.current !==
+        "contact",
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: "title",
+          title: "Column heading",
+          type: "internationalizedArrayString",
+          description:
+            "e.g. “Other ways to reach me”. Leave empty for the built-in heading.",
+        }),
+        defineField({
+          name: "items",
+          title: "Contact details",
+          type: "array",
+          of: [
+            defineArrayMember({
+              name: "contactChannel",
+              title: "Contact detail",
+              type: "object",
+              fields: [
+                {
+                  name: "platform",
+                  title: "Type",
+                  type: "string",
+                  options: {
+                    list: [
+                      { value: "phone", title: "Phone" },
+                      { value: "email", title: "Email" },
+                      { value: "instagram", title: "Instagram" },
+                      { value: "facebook", title: "Facebook" },
+                      { value: "youtube", title: "YouTube" },
+                      { value: "website", title: "Website" },
+                    ],
+                  },
+                  validation: (rule) => rule.required(),
+                },
+                {
+                  name: "value",
+                  title: "Link, number or address",
+                  type: "string",
+                  description:
+                    "Phone: the number as you would dial it. Email: the address. Everything else: the full link, e.g. https://instagram.com/yourname.",
+                  validation: (rule) => rule.required(),
+                },
+                {
+                  name: "label",
+                  title: "Text shown (optional)",
+                  type: "string",
+                  description:
+                    "Overrides the default text, e.g. “@sarazamecznik”. Phone and email show the number/address when this is empty; links show the platform name.",
+                },
+              ],
+              preview: {
+                select: { platform: "platform", value: "value" },
+                prepare({ platform, value }) {
+                  const names: Record<string, string> = {
+                    phone: "Phone",
+                    email: "Email",
+                    instagram: "Instagram",
+                    facebook: "Facebook",
+                    youtube: "YouTube",
+                    website: "Website",
+                  };
+                  return {
+                    title: names[platform as string] ?? "Contact detail",
+                    subtitle: value,
+                  };
+                },
+              },
+            }),
+          ],
         }),
       ],
     }),

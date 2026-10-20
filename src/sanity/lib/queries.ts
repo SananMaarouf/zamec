@@ -123,6 +123,12 @@ export const PAGE_BY_SLUG_QUERY = defineQuery(`
       "submitLabel":  coalesce(submitLabel[language == $locale][0].value, submitLabel[0].value),
       "successTitle": coalesce(successTitle[language == $locale][0].value, successTitle[0].value),
       "successBody":  coalesce(successBody[language == $locale][0].value, successBody[0].value)
+    },
+    // Contact page only: the column of other ways to get in touch. An empty
+    // array or object means the page renders the form alone.
+    "contactDetails": contactDetails{
+      "title": coalesce(title[language == $locale][0].value, title[0].value),
+      items[]{ platform, value, label }
     }
   }
 `);
