@@ -86,10 +86,16 @@ const menu: MenuItem[] = (settings?.navigation?.items ?? [])
 
 // The contact page is a template-owned route (there is no CMS document to
 // reference), so its nav entry is appended here instead of coming from the
-// Navigation document. Skip it when the editor already linked it themselves.
+// Navigation document's list. Navigation → "Show the contact link" turns it
+// off, and an optional customized label wins over the built-in one. Skip it
+// when the editor already linked the page themselves.
 const contactUrl = localizedPath(locale, "/contact");
-if (!menu.some((item) => item.url === contactUrl)) {
-  menu.push({ title: uiText("contactNav", locale), url: contactUrl });
+const contactInNav = settings?.navigation?.showContact !== false;
+if (contactInNav && !menu.some((item) => item.url === contactUrl)) {
+  menu.push({
+    title: settings?.navigation?.contactLabel ?? uiText("contactNav", locale),
+    url: contactUrl,
+  });
 }
 ---
 

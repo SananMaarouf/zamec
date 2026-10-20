@@ -11,6 +11,7 @@
 import PortableText from "@/components/PortableText.astro";
 import { ContactForm } from "@/components/react/contact-form";
 import { uiText } from "@/lib/ui-strings";
+import { type ContactFormOverrides } from "@/lib/contact";
 import { type Locale } from "@/sanity/lib/locale";
 
 interface Props {
@@ -19,6 +20,8 @@ interface Props {
   page?: {
     title?: string | null;
     body?: any[] | null;
+    /** Editorial wording for the form itself (see ContactFormOverrides). */
+    contactForm?: ContactFormOverrides | null;
   } | null;
 }
 
@@ -53,6 +56,11 @@ const bodyHasText = (page?.body ?? []).some((block: any) =>
   }
 
   <div class="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
-    <ContactForm client:load endpoint={endpoint} locale={locale} />
+    <ContactForm
+      client:load
+      endpoint={endpoint}
+      locale={locale}
+      overrides={page?.contactForm ?? undefined}
+    />
   </div>
 </section>

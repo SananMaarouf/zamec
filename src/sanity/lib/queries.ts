@@ -114,7 +114,16 @@ export const PAGE_BY_SLUG_QUERY = defineQuery(`
     "body":           coalesce(body[language == $locale][0].value, body[0].value),
     "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),
     "slug":           slug.current,
-    ogImage
+    ogImage,
+    // Contact page only (the contactForm field is hidden for other slugs in
+    // the schema): the editorial wording of the form chrome. The island falls
+    // back to its built-in localized strings for anything missing here.
+    "contactForm": contactForm{
+      "heading":      coalesce(heading[language == $locale][0].value, heading[0].value),
+      "submitLabel":  coalesce(submitLabel[language == $locale][0].value, submitLabel[0].value),
+      "successTitle": coalesce(successTitle[language == $locale][0].value, successTitle[0].value),
+      "successBody":  coalesce(successBody[language == $locale][0].value, successBody[0].value)
+    }
   }
 `);
 
@@ -129,6 +138,11 @@ export const SITE_SETTINGS_QUERY = defineQuery(`
     // The menu is its own singleton (see structure.ts), so it is fetched by
     // type instead of through a reference on this document.
     "navigation": *[_type == "navigation"][0]{
+      // Contact is a template-owned route (no document to reference), so the
+      // menu gets an explicit switch + label for it. A missing field means the
+      // site predates this setting: default to showing the link.
+      "showContact": showContact != false,
+      "contactLabel": coalesce(contactLabel[language == $locale][0].value, contactLabel[0].value),
       items[]{
         "label": coalesce(label[language == $locale][0].value, label[0].value),
         href,

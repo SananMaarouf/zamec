@@ -31,6 +31,51 @@ export const pageType = defineType({
       name: "body",
       type: "internationalizedArrayBlockContent",
     }),
+    // Contact-page-only block: the form is template-owned (Zod validation,
+    // Formspree endpoint), but the words around it are editorial copy. Shown
+    // only when this document's slug is `contact`, so ordinary pages never see
+    // fields that do nothing.
+    defineField({
+      name: "contactForm",
+      title: "Contact form",
+      type: "object",
+      description:
+        "The wording of the contact form. Leave a field empty to use the built-in text. The fields themselves (name, email, subject, message) and their validation are part of the template and cannot be changed here.",
+      hidden: ({ document }) =>
+        (document?.slug as { current?: string } | undefined)?.current !==
+        "contact",
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: "heading",
+          title: "Heading above the form",
+          type: "internationalizedArrayString",
+          description:
+            "Optional. Shown just above the form, e.g. “Send me a message”. Leave empty for no heading.",
+        }),
+        defineField({
+          name: "submitLabel",
+          title: "Send button",
+          type: "internationalizedArrayString",
+          description:
+            "Text on the send button. Leave empty for “Send message” / “Send melding”.",
+        }),
+        defineField({
+          name: "successTitle",
+          title: "Thank-you heading",
+          type: "internationalizedArrayString",
+          description:
+            "Shown instead of the form after a message is sent. Leave empty for the built-in text.",
+        }),
+        defineField({
+          name: "successBody",
+          title: "Thank-you text",
+          type: "internationalizedArrayText",
+          description:
+            "The sentence under the thank-you heading. Leave empty for the built-in text.",
+        }),
+      ],
+    }),
     defineField({
       name: "seoDescription",
       title: "SEO description",

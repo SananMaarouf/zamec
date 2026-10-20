@@ -45,7 +45,9 @@ Studio opens at <http://localhost:3333> (or use the hosted Sanity Studio at mana
   previewed catalog in the same **Theme** document
 - Tailwind CSS + shadcn UI setup
 - Localized contact page (`/contact`, `/nb/contact`) with a TanStack Form + Zod
-  form that POSTs to a Formspree endpoint (`FORMSPREE_URL`)
+  form that POSTs to a Formspree endpoint (`FORMSPREE_URL`). The page copy and
+  the form's wording come from the **Contact Page** document in the Studio (a
+  `page` document with slug `contact`), with localized fallbacks baked in
 - SEO defaults wired into the layout: per-page title/description, canonical,
   `hreflang` for both locales + `x-default`, Open Graph and Twitter cards with a
   1200×630 share image, generated `sitemap-index.xml` (`@astrojs/sitemap`) and
@@ -165,6 +167,7 @@ Studio opens at <http://localhost:3333>. The layout expects singleton content �
 Optional but recommended:
 - `post` and `category` to validate list/detail routes
 - `page` to validate CMS-driven `/{locale}/[page]` routes
+- `page` with slug `contact` for the contact page copy. Easiest: open **Contact Page** in the Studio sidebar — it creates the document with the slug already set. The route falls back to built-in copy when it is missing.
 
 Publish all documents in Studio, then move on.
 
@@ -386,7 +389,8 @@ Other notes:
 | Sitemap + robots | `astro.config.mjs` (`@astrojs/sitemap`), `src/pages/robots.txt.ts` |
 | Update routes/pages | `src/pages/*` |
 | 404 copy / markup | `src/components/NotFound.astro`; routes in `src/pages/404.astro` + `src/pages/[locale]/404.astro`; served by `nginx.conf` `error_page` |
-| Contact page copy + form | `src/lib/ui-strings.ts` (`contact*`), `src/components/ContactPage.astro`, `src/components/react/contact-form.tsx`; routes in `src/pages/contact.astro` + `src/pages/[locale]/contact.astro` |
+| Contact page copy + form | Copy lives on the `page` document with slug `contact` (Studio: **Contact Page**); built-in fallbacks in `src/lib/ui-strings.ts` (`contact*`); form chrome/CMS overrides in `src/components/react/contact-form.tsx` + `src/lib/contact.ts`; routes in `src/pages/contact.astro` + `src/pages/[locale]/contact.astro` |
+| Contact link in the menu | Navigation singleton: `showContact` + `contactLabel`, applied in `src/layouts/Layout.astro` |
 
 ## Command reference
 

@@ -105,6 +105,7 @@ const ContactForm = ({
   endpoint,
   locale = "en",
   className,
+  overrides,
   onSuccess,
 }: ContactFormProps) => {
   const t = translations[locale] ?? translations.en;
@@ -112,6 +113,21 @@ const ContactForm = ({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [succeeded, setSucceeded] = useState(false);
   const schema = useMemo(() => buildContactSchema(t), [t]);
+
+  // Editors can rewrite the visible wording from the Studio (the `contactForm`
+  // block on the contact page document). Anything left empty keeps the
+  // built-in localized default above, and the validation messages always come
+  // from `t` because they are tied to the Zod rules.
+  const strings = useMemo(
+    () => ({
+      ...t,
+      send: overrides?.submitLabel?.trim() || t.send,
+      successTitle: overrides?.successTitle?.trim() || t.successTitle,
+      successBody: overrides?.successBody?.trim() || t.successBody,
+    }),
+    [t, overrides],
+  );
+  const heading = overrides?.heading?.trim();
 
   const form = useForm({
     defaultValues: {
@@ -190,11 +206,16 @@ const ContactForm = ({
   if (succeeded) {
     return (
       <div className={cn("flex flex-col gap-4 py-4", className)}>
+        {heading && (
+          <h2 className="font-heading text-xl font-semibold">{heading}</h2>
+        )}
         <div className="flex items-start gap-3 rounded-lg border border-primary/40 bg-card p-4">
           <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary" />
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium">{t.successTitle}</p>
-            <p className="text-sm text-muted-foreground">{t.successBody}</p>
+            <p className="text-sm font-medium">{strings.successTitle}</p>
+            <p className="text-sm text-muted-foreground">
+              {strings.successBody}
+            </p>
           </div>
         </div>
         <Button
@@ -222,6 +243,9 @@ const ContactForm = ({
         void form.handleSubmit();
       }}
     >
+      {heading && (
+        <h2 className="font-heading text-xl font-semibold">{heading}</h2>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <form.Field name="name">
           {(field) => {
@@ -375,7 +399,7 @@ const ContactForm = ({
             className="w-full sm:w-auto sm:self-start"
           >
             <Send className="size-4" />
-            {isSubmitting ? t.sending : t.send}
+            {isSubmitting ? t.sending : strings.send}
           </Button>
         )}
       </form.Subscribe>

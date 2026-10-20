@@ -40,6 +40,32 @@ async function existingDocumentId(type: SingletonName): Promise<string> {
   }
 }
 
+/**
+ * The contact page is an ordinary `page` document, but `/contact` and
+ * `/nb/contact` are template-owned routes that look it up by the fixed slug
+ * `contact`. It therefore gets its own Studio entry (so editors can find the
+ * form wording), and it is kept out of the generic Pages list: showing it
+ * twice invites someone to create a second document with the same slug.
+ *
+ * Its id is resolved from the dataset because it may have been imported with a
+ * generated id; `page-contact` is only used when no such document exists yet,
+ * in which case clicking the entry creates one with the slug prefilled.
+ */
+const CONTACT_SLUG = "contact";
+const CONTACT_FALLBACK_ID = "page-contact";
+
+async function contactPageId(): Promise<string> {
+  try {
+    const id = await studioClient.fetch<string | null>(
+      `*[_type == "page" && slug.current == $slug][0]._id`,
+      { slug: CONTACT_SLUG }
+    );
+    return id ?? CONTACT_FALLBACK_ID;
+  } catch {
+    return CONTACT_FALLBACK_ID;
+  }
+}
+
 const singleton = (
   S: Parameters<StructureResolver>[0],
   type: Exclude<SingletonName, "navigation">,
@@ -66,8 +92,30 @@ export const structure: StructureResolver = (S) =>
         ),
       singleton(S, "theme", "Theme"),
       singleton(S, "footer", "Footer"),
+      S.listItem()
+        .title("Contact Page")
+        .id("contactPage")
+        .child(async () =>
+          S.document()
+            .schemaType("page")
+            .documentId(await contactPageId())
+            .title("Contact Page")
+            // Only applied when the document does not exist yet. The route
+            // finds the page by its slug, so a new document must start with
+            // `contact` rather than whatever the title happens to slugify to.
+            .initialValueTemplate("page-contact")
+        ),
       S.divider(),
-      ...S.documentTypeListItems().filter(
-        (item) => !isSingleton(item.getId() ?? "")
-      ),
+      ...S.documentTypeListItems()
+        .filter((item) => !isSingleton(item.getId() ?? ""))
+        .filter((item) => item.getId() !== "page"),
+      S.listItem()
+        .title("Pages")
+        .id("page-list")
+        .child(async () =>
+          S.documentTypeList("page")
+            .title("Pages")
+            .filter("_id != $contactId")
+            .params({ contactId: await contactPageId() })
+        ),
     ]);

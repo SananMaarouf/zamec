@@ -30,7 +30,7 @@ Hurtigtaster:
 
 Alt tekstinnhold finnes på to språk: **English** (`en`) og **Norsk bokmål** (`nb`).
 
-- Norsk ligger på `/`, engelsk på `/en/…`.
+- Engelsk ligger på `/`, norsk på `/nb/…`.
 - Fyller du bare ut ett språk, finnes bare den ene siden. Tomt felt = ingen side
   på det språket.
 
@@ -58,6 +58,10 @@ Hovedmenyen øverst på siden.
   kategori. Da følger lenken automatisk med om adressen endres.
 - Bruk **External / manual URL** bare for eksterne nettsteder.
 - Rekkefølgen kan endres ved å dra i håndtaket til venstre.
+- **Show the contact link** slår kontaktlenken i menyen av og på. Selve
+  kontaktsiden blir liggende på `/contact` uansett.
+- **Contact link label** er valgfri tekst for kontaktlenken. Tomt felt gir
+  «Contact» på engelsk og «Kontakt» på norsk.
 
 ### Tema (singleton)
 
@@ -100,6 +104,25 @@ Frittstående side, f.eks. Om meg eller Kontakt. Adressen kommer fra `Slug`.
 `SEO description` er teksten som vises under tittelen i Google og når lenken
 deles (120–160 tegn). Tomt felt = beskrivelsen fra Innstillinger brukes.
 
+### Kontaktsiden (Contact Page)
+
+Kontaktsiden har sin egen plass i menyen i Studio, fordi skjemaet er en del av
+malen og ikke kan bygges som en vanlig side. Åpne **Contact Page** for å redigere
+den – du trenger ikke lete i sidelisten.
+
+| Felt | Betyr |
+|---|---|
+| Title | Overskriften øverst på siden, per språk |
+| Body | Innledningen over skjemaet. Tomt felt = den innebygde teksten brukes |
+| Contact form → Heading above the form | Valgfri overskrift rett over skjemaet, f.eks. «Send meg en melding». Tomt = ingen overskrift |
+| Contact form → Send button | Teksten på send-knappen. Tomt = «Send message» / «Send melding» |
+| Contact form → Thank-you heading | Overskriften som vises etter at meldingen er sendt |
+| Contact form → Thank-you text | Setningen under takke-overskriften |
+| SEO description / Share image | Som på andre sider |
+
+Feltene i skjemaet (navn, e-post, emne, melding) og feilmeldingene er en del av
+malen og kan ikke endres her. Vil du ha andre felt, må utvikleren endre dem.
+
 ## Søk og deling (SEO)
 
 Feltene som styrer hvordan nettstedet ser ut i Google og når en lenke deles:
@@ -132,6 +155,13 @@ lager seg selv), bilder, kategori og publiser.
 
 **Endre menyen:** Content → Navigation → endre label/lenke → Publish.
 
+**Endre kontaktsiden:** Content → Contact Page → endre tekstene (overskrift,
+innledning, tekst i og rundt skjemaet) → Publish. Finnes dokumentet ikke ennå,
+opprettes det med riktig adresse når du åpner det.
+
+**Fjerne kontaktlenken fra menyen:** Content → Navigation → slå av **Show the
+contact link** → Publish. Siden blir fortsatt liggende på `/contact`.
+
 **Ny side:** Content → Side → **Create new** → tittel (slug lager seg selv),
 innhold → Publish.
 
@@ -148,5 +178,6 @@ Sletting kan ikke angres, men alle tidligere versjoner finnes under
 - Endre `Slug` så lite som mulig – gamle lenker slutter å virke.
 - Er du usikker på en endring: la den ligge som utkast. Nettsiden påvirkes ikke
   før du trykker Publish.
-- Innstillinger, Navigasjon, Tema og Footer skal det bare finnes én av. Lag dem
-  ikke på nytt.
+- Innstillinger, Navigasjon, Tema, Footer og Contact Page skal det bare finnes
+  én av. Lag dem ikke på nytt.
+- Kontaktsiden redigeres under **Contact Page**, ikke under Side-listen.

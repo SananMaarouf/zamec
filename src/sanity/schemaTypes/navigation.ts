@@ -8,6 +8,25 @@ export const navigationType = defineType({
   type: "document",
   description: DOCUMENT_GUIDES.navigation,
   fields: [
+    // The contact page is a template-owned route, so it has no CMS document to
+    // hang off the menu as a reference. These two fields are how editors
+    // include it (or leave it out) without touching code.
+    defineField({
+      name: "showContact",
+      title: "Show the contact link",
+      type: "boolean",
+      description:
+        "Turn off to remove the contact page from the menu. The page itself stays online at /contact — tell your developer if it should disappear entirely.",
+      initialValue: true,
+    }),
+    defineField({
+      name: "contactLabel",
+      title: "Contact link label",
+      type: "internationalizedArrayString",
+      description:
+        "Optional. Leave empty to use the built-in label: “Contact” in English, “Kontakt” in Norwegian.",
+      hidden: ({ parent }) => parent?.showContact === false,
+    }),
     defineField({
       name: "items",
       type: "array",
