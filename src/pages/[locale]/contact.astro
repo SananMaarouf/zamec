@@ -2,10 +2,9 @@
 import Layout from "@/layouts/Layout.astro";
 import ContactPage from "@/components/ContactPage.astro";
 import { loadQuery } from "@/sanity/lib/load-query";
-import { PAGE_BY_SLUG_QUERY } from "@/sanity/lib/queries";
+import { CONTACT_PAGE_QUERY } from "@/sanity/lib/queries";
 import { NON_DEFAULT_LOCALES, type Locale } from "@/sanity/lib/locale";
 import { uiText } from "@/lib/ui-strings";
-import { CONTACT_SLUG } from "@/lib/contact";
 
 // Builds `/nb/contact` → dist/nb/contact/index.html.
 export async function getStaticPaths() {
@@ -16,8 +15,8 @@ const locale = Astro.params.locale as Locale;
 
 // Same CMS-owned copy as the default locale (see `contact.astro`).
 const { data: page } = await loadQuery<any>({
-  query: PAGE_BY_SLUG_QUERY,
-  params: { slug: CONTACT_SLUG, locale },
+  query: CONTACT_PAGE_QUERY,
+  params: { locale },
 });
 ---
 

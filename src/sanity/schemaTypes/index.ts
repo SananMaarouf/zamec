@@ -2,6 +2,7 @@ import type { SchemaTypeDefinition } from "sanity";
 
 import { blockContentType } from "./blockContent";
 import { categoryType } from "./category";
+import { contactPageType } from "./contactPage";
 import { footerType } from "./footer";
 import { navigationType } from "./navigation";
 import { pageType } from "./page";
@@ -13,6 +14,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
     blockContentType,
     categoryType,
+    contactPageType,
     footerType,
     navigationType,
     pageType,

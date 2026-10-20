@@ -276,23 +276,6 @@ export type Page = {
   title?: InternationalizedArrayString;
   slug?: Slug;
   body?: InternationalizedArrayBlockContent;
-  contactForm?: {
-    heading?: InternationalizedArrayString;
-    submitLabel?: InternationalizedArrayString;
-    successTitle?: InternationalizedArrayString;
-    successBody?: InternationalizedArrayText;
-  };
-  contactDetails?: {
-    title?: InternationalizedArrayString;
-    items?: Array<{
-      platform?:
-        "phone" | "email" | "instagram" | "facebook" | "youtube" | "website";
-      value?: string;
-      label?: string;
-      _type: "contactChannel";
-      _key: string;
-    }>;
-  };
   seoDescription?: InternationalizedArrayText;
   ogImage?: {
     asset?: SanityImageAssetReference;
@@ -362,6 +345,42 @@ export type Footer = {
   email?: string;
   address?: InternationalizedArrayString;
   copyright?: InternationalizedArrayString;
+};
+
+export type ContactPage = {
+  _id: string;
+  _type: "contactPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: InternationalizedArrayString;
+  body?: InternationalizedArrayBlockContent;
+  contactForm?: {
+    heading?: InternationalizedArrayString;
+    submitLabel?: InternationalizedArrayString;
+    successTitle?: InternationalizedArrayString;
+    successBody?: InternationalizedArrayText;
+  };
+  contactDetails?: {
+    title?: InternationalizedArrayString;
+    items?: Array<{
+      platform?:
+        "phone" | "email" | "instagram" | "facebook" | "youtube" | "website";
+      value?: string;
+      label?: string;
+      _type: "contactChannel";
+      _key: string;
+    }>;
+  };
+  seoDescription?: InternationalizedArrayText;
+  ogImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
 };
 
 export type Category = {
@@ -539,6 +558,7 @@ export type AllSanitySchemaTypes =
   | Slug
   | Post
   | Footer
+  | ContactPage
   | Category
   | BlockContent
   | InternationalizedArrayBlockContentValue
@@ -645,12 +665,29 @@ export type PAGE_SLUGS_QUERY_RESULT = Array<{
 
 // Source: src/sanity/lib/queries.ts
 // Variable: PAGE_BY_SLUG_QUERY
-// Query: *[_type == "page" && slug.current == $slug][0]{    "title":          coalesce(title[language == $locale][0].value, title[0].value),    "body":           coalesce(body[language == $locale][0].value, body[0].value),    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),    "slug":           slug.current,    ogImage,    // Contact page only (the contactForm field is hidden for other slugs in    // the schema): the editorial wording of the form chrome. The island falls    // back to its built-in localized strings for anything missing here.    "contactForm": contactForm{      "heading":      coalesce(heading[language == $locale][0].value, heading[0].value),      "submitLabel":  coalesce(submitLabel[language == $locale][0].value, submitLabel[0].value),      "successTitle": coalesce(successTitle[language == $locale][0].value, successTitle[0].value),      "successBody":  coalesce(successBody[language == $locale][0].value, successBody[0].value)    },    // Contact page only: the column of other ways to get in touch. An empty    // array or object means the page renders the form alone.    "contactDetails": contactDetails{      "title": coalesce(title[language == $locale][0].value, title[0].value),      items[]{ platform, value, label }    }  }
+// Query: *[_type == "page" && slug.current == $slug][0]{    "title":          coalesce(title[language == $locale][0].value, title[0].value),    "body":           coalesce(body[language == $locale][0].value, body[0].value),    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),    "slug":           slug.current,    ogImage  }
 export type PAGE_BY_SLUG_QUERY_RESULT = {
   title: string | null;
   body: BlockContent | null;
   seoDescription: string | null;
   slug: string | null;
+  ogImage: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  } | null;
+} | null;
+
+// Source: src/sanity/lib/queries.ts
+// Variable: CONTACT_PAGE_QUERY
+// Query: *[_type == "contactPage"][0]{    "title":          coalesce(title[language == $locale][0].value, title[0].value),    "body":           coalesce(body[language == $locale][0].value, body[0].value),    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),    ogImage,    // Wording of the form chrome. The island falls back to its built-in    // localized strings for anything left empty here.    "contactForm": contactForm{      "heading":      coalesce(heading[language == $locale][0].value, heading[0].value),      "submitLabel":  coalesce(submitLabel[language == $locale][0].value, submitLabel[0].value),      "successTitle": coalesce(successTitle[language == $locale][0].value, successTitle[0].value),      "successBody":  coalesce(successBody[language == $locale][0].value, successBody[0].value)    },    // The column of other ways to get in touch. An empty array or missing    // object means the page renders the form alone.    "contactDetails": contactDetails{      "title": coalesce(title[language == $locale][0].value, title[0].value),      items[]{ platform, value, label }    }  }
+export type CONTACT_PAGE_QUERY_RESULT = {
+  title: string | null;
+  body: BlockContent | null;
+  seoDescription: string | null;
   ogImage: {
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -751,7 +788,8 @@ declare global {
     '\n  *[_type == "category" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': CATEGORY_SLUGS_QUERY_RESULT;
     '\n  *[_type == "category" && slug.current == $slug][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    "slug":        slug.current,\n    "posts": *[_type == "post" && references(^._id)\n      && count(title[language == $locale && value != null]) > 0]\n      | order(publishedAt desc, _id asc){\n      "title":     coalesce(title[language == $locale][0].value, title[0].value),\n      "slug":      slug.current,\n      publishedAt,\n      mainImage{ asset, alt },\n      images[]{ asset, alt }\n    }\n  }\n': CATEGORY_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "page" && count(title[language == $locale && value != null]) > 0]{\n    "slug": slug.current\n  }\n': PAGE_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "page" && slug.current == $slug][0]{\n    "title":          coalesce(title[language == $locale][0].value, title[0].value),\n    "body":           coalesce(body[language == $locale][0].value, body[0].value),\n    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),\n    "slug":           slug.current,\n    ogImage,\n    // Contact page only (the contactForm field is hidden for other slugs in\n    // the schema): the editorial wording of the form chrome. The island falls\n    // back to its built-in localized strings for anything missing here.\n    "contactForm": contactForm{\n      "heading":      coalesce(heading[language == $locale][0].value, heading[0].value),\n      "submitLabel":  coalesce(submitLabel[language == $locale][0].value, submitLabel[0].value),\n      "successTitle": coalesce(successTitle[language == $locale][0].value, successTitle[0].value),\n      "successBody":  coalesce(successBody[language == $locale][0].value, successBody[0].value)\n    },\n    // Contact page only: the column of other ways to get in touch. An empty\n    // array or object means the page renders the form alone.\n    "contactDetails": contactDetails{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      items[]{ platform, value, label }\n    }\n  }\n': PAGE_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "page" && slug.current == $slug][0]{\n    "title":          coalesce(title[language == $locale][0].value, title[0].value),\n    "body":           coalesce(body[language == $locale][0].value, body[0].value),\n    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),\n    "slug":           slug.current,\n    ogImage\n  }\n': PAGE_BY_SLUG_QUERY_RESULT;
+    '\n  *[_type == "contactPage"][0]{\n    "title":          coalesce(title[language == $locale][0].value, title[0].value),\n    "body":           coalesce(body[language == $locale][0].value, body[0].value),\n    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),\n    ogImage,\n    // Wording of the form chrome. The island falls back to its built-in\n    // localized strings for anything left empty here.\n    "contactForm": contactForm{\n      "heading":      coalesce(heading[language == $locale][0].value, heading[0].value),\n      "submitLabel":  coalesce(submitLabel[language == $locale][0].value, submitLabel[0].value),\n      "successTitle": coalesce(successTitle[language == $locale][0].value, successTitle[0].value),\n      "successBody":  coalesce(successBody[language == $locale][0].value, successBody[0].value)\n    },\n    // The column of other ways to get in touch. An empty array or missing\n    // object means the page renders the form alone.\n    "contactDetails": contactDetails{\n      "title": coalesce(title[language == $locale][0].value, title[0].value),\n      items[]{ platform, value, label }\n    }\n  }\n': CONTACT_PAGE_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0]{\n    "title":       coalesce(title[language == $locale][0].value, title[0].value),\n    "description": coalesce(description[language == $locale][0].value, description[0].value),\n    siteUrl,\n    ogImage,\n    // The menu is its own singleton (see structure.ts), so it is fetched by\n    // type instead of through a reference on this document.\n    "navigation": *[_type == "navigation"][0]{\n      // Contact is a template-owned route (no document to reference), so the\n      // menu gets an explicit switch + label for it. A missing field means the\n      // site predates this setting: default to showing the link.\n      "showContact": showContact != false,\n      "contactLabel": coalesce(contactLabel[language == $locale][0].value, contactLabel[0].value),\n      items[]{\n        "label": coalesce(label[language == $locale][0].value, label[0].value),\n        href,\n        "internalRef": internalRef->{ _type, "slug": slug.current }\n      }\n    }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
     '\n  *[_type == "footer"][0]{\n    instagramURL,\n    cellNumber,\n    email,\n    "address":   coalesce(address[language == $locale][0].value, address[0].value),\n    "copyright": coalesce(copyright[language == $locale][0].value, copyright[0].value)\n  }\n': FOOTER_QUERY_RESULT;
     '\n  *[_type == "theme"][0]{\n    radius,\n    light,\n    dark,\n    fonts\n  }\n': THEME_QUERY_RESULT;

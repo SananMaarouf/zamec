@@ -46,8 +46,8 @@ Studio opens at <http://localhost:3333> (or use the hosted Sanity Studio at mana
 - Tailwind CSS + shadcn UI setup
 - Localized contact page (`/contact`, `/nb/contact`) with a TanStack Form + Zod
   form that POSTs to a Formspree endpoint (`FORMSPREE_URL`). The page copy and
-  the form's wording come from the **Contact Page** document in the Studio (a
-  `page` document with slug `contact`), with localized fallbacks baked in. An
+  the form's wording come from the **Contact Page** singleton in the Studio,
+  with localized fallbacks baked in. An
   optional column beside the form lists phone, email and social links; it only
   renders when the Studio has rows for it
 - SEO defaults wired into the layout: per-page title/description, canonical,
@@ -165,11 +165,12 @@ Studio opens at <http://localhost:3333>. The layout expects singleton content �
 | `Navigation` | Main menu rendering | at least 1 `items[]` row with `label` + (`href` or `internalRef`) |
 | `Footer` | Footer text/contact section | `address` (`en`, `nb`) and/or `copyright` |
 | `Theme` | Site color palette (light + dark) and the two Google Fonts | nothing — every color and font starts at the template default |
+| `Contact Page` | Copy, form wording and the "other ways to get in touch" column | nothing — every field falls back to the built-in copy |
 
 Optional but recommended:
 - `post` and `category` to validate list/detail routes
 - `page` to validate CMS-driven `/{locale}/[page]` routes
-- `page` with slug `contact` for the contact page copy. Easiest: open **Contact Page** in the Studio sidebar — it creates the document with the slug already set. The route falls back to built-in copy when it is missing.
+- `Contact Page` (a singleton, opened from the sidebar). It is created on first open and cannot be duplicated; the route falls back to built-in copy while it is empty.
 
 Publish all documents in Studio, then move on.
 
@@ -391,8 +392,8 @@ Other notes:
 | Sitemap + robots | `astro.config.mjs` (`@astrojs/sitemap`), `src/pages/robots.txt.ts` |
 | Update routes/pages | `src/pages/*` |
 | 404 copy / markup | `src/components/NotFound.astro`; routes in `src/pages/404.astro` + `src/pages/[locale]/404.astro`; served by `nginx.conf` `error_page` |
-| Contact page copy + form | Copy lives on the `page` document with slug `contact` (Studio: **Contact Page**); built-in fallbacks in `src/lib/ui-strings.ts` (`contact*`); form chrome/CMS overrides in `src/components/react/contact-form.tsx` + `src/lib/contact.ts`; routes in `src/pages/contact.astro` + `src/pages/[locale]/contact.astro` |
-| Contact details column (phone, Instagram, …) | `contactDetails` on the same document; static markup in `src/components/react/contact-details.tsx`, brand marks in `brand-icons.tsx`; column layout in `ContactPage.astro` |
+| Contact page copy + form | Copy lives on the `contactPage` singleton (Studio: **Contact Page**); schema in `src/sanity/schemaTypes/contactPage.ts`; built-in fallbacks in `src/lib/ui-strings.ts` (`contact*`); form chrome/CMS overrides in `src/components/react/contact-form.tsx` + `src/lib/contact.ts`; routes in `src/pages/contact.astro` + `src/pages/[locale]/contact.astro` |
+| Contact details column (phone, Instagram, …) | `contactDetails` on the same singleton; static markup in `src/components/react/contact-details.tsx`, brand marks in `brand-icons.tsx`; column layout in `ContactPage.astro` |
 | Contact link in the menu | Navigation singleton: `showContact` + `contactLabel`, applied in `src/layouts/Layout.astro` |
 
 ## Command reference

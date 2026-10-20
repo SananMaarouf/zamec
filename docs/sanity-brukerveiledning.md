@@ -130,14 +130,15 @@ ut automatisk fra tittelen.
 `SEO description` er teksten som vises under tittelen i Google og når lenken
 deles (120–160 tegn). Tomt felt = beskrivelsen fra Innstillinger brukes.
 
-Kontaktsiden ligger **ikke** her – den er en egen oppføring i menyen.
+Kontaktsiden ligger **ikke** her, og du kan ikke lage en ny: den er en egen
+oppføring i menyen (se under).
 
 ## Kontaktsiden (Contact Page)
 
 Kontaktsiden har sin egen plass i menyen i Studio, fordi skjemaet er en del av
 malen og ikke kan bygges som en vanlig side. Åpne **Contact Page** for å redigere
-den – du trenger ikke lete i sidelisten. Finnes dokumentet ikke ennå, opprettes
-det med riktig adresse (`/contact`) når du åpner det.
+den – du trenger ikke lete i sidelisten. Det finnes bare én kontaktside: den
+kan ikke opprettes på nytt, og det er ingen adresse (slug) å passe på.
 
 | Felt | Betyr |
 |---|---|

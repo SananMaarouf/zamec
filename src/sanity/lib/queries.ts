@@ -114,18 +114,32 @@ export const PAGE_BY_SLUG_QUERY = defineQuery(`
     "body":           coalesce(body[language == $locale][0].value, body[0].value),
     "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),
     "slug":           slug.current,
+    ogImage
+  }
+`);
+
+// ───── Contact page ────────────────────────────────────────────────────────
+// A singleton of its own type (not a `page`), because /contact is a
+// template-owned route: the Studio entry opens it by fixed id, so there is no
+// slug to get wrong and no way to create a second one. Everything here is
+// editorial copy; the form's fields and Zod rules live in the island.
+
+export const CONTACT_PAGE_QUERY = defineQuery(`
+  *[_type == "contactPage"][0]{
+    "title":          coalesce(title[language == $locale][0].value, title[0].value),
+    "body":           coalesce(body[language == $locale][0].value, body[0].value),
+    "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),
     ogImage,
-    // Contact page only (the contactForm field is hidden for other slugs in
-    // the schema): the editorial wording of the form chrome. The island falls
-    // back to its built-in localized strings for anything missing here.
+    // Wording of the form chrome. The island falls back to its built-in
+    // localized strings for anything left empty here.
     "contactForm": contactForm{
       "heading":      coalesce(heading[language == $locale][0].value, heading[0].value),
       "submitLabel":  coalesce(submitLabel[language == $locale][0].value, submitLabel[0].value),
       "successTitle": coalesce(successTitle[language == $locale][0].value, successTitle[0].value),
       "successBody":  coalesce(successBody[language == $locale][0].value, successBody[0].value)
     },
-    // Contact page only: the column of other ways to get in touch. An empty
-    // array or object means the page renders the form alone.
+    // The column of other ways to get in touch. An empty array or missing
+    // object means the page renders the form alone.
     "contactDetails": contactDetails{
       "title": coalesce(title[language == $locale][0].value, title[0].value),
       items[]{ platform, value, label }

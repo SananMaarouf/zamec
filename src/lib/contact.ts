@@ -1,9 +1,11 @@
 import type { Locale } from "@/sanity/lib/locale";
 
-// The contact page is a template-owned route (`/contact`, `/nb/contact`) whose
-// heading and intro come from the CMS `page` document with this slug. Because
-// the route is static, the generic `[page]` routes must skip this slug or
-// Astro renders it twice and warns about the conflict.
+// The contact page is a template-owned route (`/contact`, `/nb/contact`) and
+// its copy lives on the `contactPage` singleton — not on a `page` document.
+// The generic `[page]` routes nevertheless skip any page whose slug is
+// `contact`: a site that still has the old contact `page` document (or an
+// editor who titles a page "Contact") would otherwise emit the same
+// `dist/contact/index.html` twice and Astro would warn about the conflict.
 export const CONTACT_SLUG = "contact";
 
 /**

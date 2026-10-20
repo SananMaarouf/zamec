@@ -25,6 +25,8 @@ export const DOCUMENT_GUIDES = {
   page: "A standalone page such as About or FAQ. Its slug decides the URL, and each language you fill in gets its own page.",
   category:
     "A topic that groups posts, for example Ceramics or Fabrics. Every category gets its own listing page.",
+  contactPage:
+    "Here you set the contact page: heading, intro, the wording of the form and the other ways to get in touch. There is only one contact page.",
   navigation:
     "The main menu. Each item points at a post, page, category or external URL, and every label is translated per language.",
 } as const;
