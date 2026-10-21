@@ -175,7 +175,9 @@ export const themeType = defineType({
         "Colors used when the site is in dark mode. Unset colors fall back to the starter palette.",
       type: "themePalette",
       group: "colors",
-      options: { collapsible: false },
+      // `mode` is read by PalettePreview so unset tokens preview with the dark
+      // starter palette rather than the light one.
+      options: { collapsible: false, mode: "dark" },
       initialValue: {
         _type: "themePalette",
         ...paletteForFields(DEFAULT_DARK_PALETTE),
