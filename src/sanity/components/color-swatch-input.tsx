@@ -14,7 +14,7 @@ const normalize = (value?: string | null): string | null => {
 };
 
 /** `<input type="color">` only understands `#rrggbb`. */
-const toPickerValue = (hex: string): string => {
+export const toPickerValue = (hex: string): string => {
   if (hex.length === 4) {
     const [r, g, b] = hex.slice(1).split("");
     return `#${r}${r}${g}${g}${b}${b}`;
