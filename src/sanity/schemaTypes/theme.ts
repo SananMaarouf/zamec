@@ -2,12 +2,10 @@ import { defineField, defineType } from "sanity";
 
 import { DOCUMENT_GUIDES } from "../lib/document-guides";
 import {
-  ADVANCED_GROUP,
   DEFAULT_DARK_PALETTE,
   DEFAULT_LIGHT_PALETTE,
   DEFAULT_RADIUS,
   RADIUS_OPTIONS,
-  THEME_GROUPS,
   THEME_TOKENS,
   paletteForFields,
 } from "../../lib/theme-tokens";
@@ -22,19 +20,23 @@ import { ColorSwatchInput } from "../components/color-swatch-input";
 import { FontSelectInput } from "../components/font-select-input";
 import { FontsPreview } from "../components/fonts-preview";
 
-const fieldsetId = (group: string) =>
-  group.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+/**
+ * Every token is edited by clicking the preview or a swatch, so the raw field
+ * list is a fallback rather than the main surface: one collapsed "Advanced"
+ * fieldset, ordered by group. Collapsed by default, so a project that only
+ * tweaks a few colors never scrolls past ~40 inputs.
+ */
+const TOKEN_FIELDSET = "advanced";
 
-const fieldsets = THEME_GROUPS.map((group) => ({
-  name: fieldsetId(group),
-  title: group,
-  options:
-    group === ADVANCED_GROUP
-      ? // Kept collapsed so the rare tokens (charts, sidebar, gradients)
-        // do not bury the handful of colors a project actually changes.
-        { columns: 2, collapsible: true, collapsed: true }
-      : { columns: 2 },
-}));
+const fieldsets = [
+  {
+    name: TOKEN_FIELDSET,
+    title: "Advanced",
+    description:
+      "Every color as a hex field. The preview and swatches above edit these same values.",
+    options: { columns: 2, collapsible: true, collapsed: true },
+  },
+];
 
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
@@ -42,9 +44,11 @@ const paletteFields = THEME_TOKENS.map((token) =>
   defineField({
     name: token.field,
     title: token.label,
-    description: token.hint,
+    // The group headings are gone from the field list, so carry the group and
+    // the CSS variable name in each field's description instead.
+    description: `${token.hint} ${token.group} · --${token.name}`,
     type: "string",
-    fieldset: fieldsetId(token.group),
+    fieldset: TOKEN_FIELDSET,
     components: { input: ColorSwatchInput },
     validation: (rule) =>
       rule.custom((value) =>
@@ -159,7 +163,7 @@ export const themeType = defineType({
       name: "light",
       title: "Light mode",
       description:
-        "Colors used when the site is in light mode. Unset colors fall back to the starter palette.",
+        "Colors used when the site is in light mode. Click the preview or any swatch to change a color; unset colors fall back to the starter palette.",
       type: "themePalette",
       group: "colors",
       options: { collapsible: false },
@@ -172,7 +176,7 @@ export const themeType = defineType({
       name: "dark",
       title: "Dark mode",
       description:
-        "Colors used when the site is in dark mode. Unset colors fall back to the starter palette.",
+        "Colors used when the site is in dark mode. Click the preview or any swatch to change a color; unset colors fall back to the starter palette.",
       type: "themePalette",
       group: "colors",
       // `mode` is read by PalettePreview so unset tokens preview with the dark

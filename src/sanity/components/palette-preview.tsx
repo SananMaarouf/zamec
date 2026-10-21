@@ -251,8 +251,8 @@ export function PalettePreview(props: ObjectInputProps) {
       {/* Advanced tokens stay out of the way: one compact strip, no labels. */}
       <Stack gap={3}>
         <Text muted size={0}>
-          Advanced tokens — {ADVANCED_TOKENS.length} more, click to change or
-          edit under “Advanced” below
+          Advanced tokens — {ADVANCED_TOKENS.length} more. Click any swatch to
+          change it; the hex fields for every color sit under “Advanced” below.
         </Text>
         <Flex gap={2} wrap="wrap">
           {ADVANCED_TOKENS.map((token) => (
