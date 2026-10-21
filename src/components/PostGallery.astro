@@ -29,7 +29,17 @@ const { posts = [], locale } = Astro.props;
 //   3. A ~156-byte blurred 32px copy of each asset, inlined as a data URI on
 //      the tile, so a tile waiting for its bytes shows the photo's own colours
 //      instead of an empty box.
-const WIDTHS = [400, 600, 800];
+const WIDTHS = [400, 600, 800, 1200];
+
+// Every asset ref carries its pixel size (`…-828x621-webp`). A square tile is
+// cut out of the largest square the source can give (`min(width, height)`), so
+// asking Sanity for a wider render than that just upscales: the CDN happily
+// returns w=800 for a 621px photo, which is exactly how a soft tile happens on
+// a 2x screen. Cap the candidates at what the file actually has.
+const squareSize = (asset: any): number => {
+  const match = /-(\d+)x(\d+)-[a-z0-9]+$/i.exec(asset?._ref ?? "");
+  return match ? Math.min(Number(match[1]), Number(match[2])) : Infinity;
+};
 
 // Mirrors the grid classes below: 1 column, 2 from `sm`, 3 from `lg`.
 // 3.5rem = 2rem container padding + 2 × 0.75rem gaps; 2.75rem = padding + 1 gap.
@@ -89,13 +99,20 @@ const items = (
           .fit("crop")
           .auto("format")
           .url();
+      // Never advertise a candidate the source cannot fill. A tile is ~400 CSS
+      // px wide, so on a 2x screen the browser wants ~800 — correct for a big
+      // upload, a blurry upscale for a small one.
+      const native = squareSize(image.asset);
+      const widths = WIDTHS.filter((w) => w <= native);
+      if (!widths.length) widths.push(Math.round(native));
+      const largest = widths[widths.length - 1];
       return {
         href: localizedPath(locale, `/post/${post.slug}`),
         title: post.title ?? "",
         alt: image.alt ?? post.title ?? "",
-        src: url(800),
-        small: url(400),
-        srcset: WIDTHS.map((w) => `${url(w)} ${w}w`).join(", "),
+        src: url(largest),
+        small: url(widths.find((w) => w >= 600) ?? largest),
+        srcset: widths.map((w) => `${url(w)} ${w}w`).join(", "),
         lqip: await lqipDataUri(image.asset),
       };
     })
@@ -114,11 +131,25 @@ const items = (
 <script is:inline>
   // Runs during parse, before the grid paints: the entry styles are gated on
   // this class, so without JS (or if the script below never boots) every tile
-  // stays visible. The timer is the fail-open guard for a JS error.
+  // stays visible. The timer is the fail-open guard for a JS error, an ad
+  // blocker or a slow module load — it also hands every tile its bytes, so a
+  // failed script can never leave the grid as empty blurred boxes.
   document.documentElement.classList.add("has-reveal");
   setTimeout(function () {
-    if (!document.documentElement.dataset.revealReady) {
-      document.documentElement.classList.remove("has-reveal");
+    if (document.documentElement.dataset.revealReady) return;
+    document.documentElement.classList.remove("has-reveal");
+    var tiles = document.querySelectorAll("[data-post-card] img[data-lazy-img]");
+    for (var i = 0; i < tiles.length; i++) {
+      (function (img) {
+        var card = img.closest("[data-post-card]");
+        var show = function () {
+          if (card) card.classList.add("is-loaded");
+        };
+        img.addEventListener("load", show, { once: true });
+        if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+        if (img.dataset.src) img.src = img.dataset.src;
+        if (img.complete && img.naturalWidth > 0) show();
+      })(tiles[i]);
     }
   }, 1500);
 </script>
@@ -136,14 +167,17 @@ const items = (
       opacity: 1;
     }
   }
-  /* The sharp image fades over the blurred placeholder it sits on. */
-  html.has-reveal [data-post-card] img[data-lazy-img] {
+  /* An <img> with no `src` yet paints its alt text inside the tile. Hide the
+     photo until its bytes are in — not gated on `has-reveal`, because the
+     fail-open path below drops that class and would expose an empty image
+     (blurred placeholder + alt text) whenever the script is slow or blocked. */
+  [data-post-card] img[data-lazy-img] {
     opacity: 0;
     transition:
       opacity 0.55s ease-out,
       transform 0.3s ease;
   }
-  html.has-reveal [data-post-card].is-loaded img[data-lazy-img] {
+  [data-post-card].is-loaded img[data-lazy-img] {
     opacity: 1;
   }
   /* The title strip starts one full height below the tile, so it is already
