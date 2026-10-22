@@ -60,7 +60,7 @@ const Navbar = ({ logo, menu = [], children, mobileExtras }: NavbarProps) => {
   return (
     <section
       id="site-navbar"
-      className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b pt-4 pb-4"
+      className="uppercase sticky top-0 z-50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b pt-4 pb-4"
     >
       <div className="container">
         {/* Desktop Menu */}
@@ -99,7 +99,9 @@ const Navbar = ({ logo, menu = [], children, mobileExtras }: NavbarProps) => {
                   <Menu className="size-7" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="overflow-y-auto">
+              {/* The sheet is portaled to <body>, so it does not inherit the
+                  uppercase transform from the navbar section. */}
+              <SheetContent className="uppercase overflow-y-auto">
                 {/* Kept visually hidden: Radix needs a title for screen
                     readers, but the mobile sheet shows no visible heading. */}
                 <SheetHeader className="sr-only">
