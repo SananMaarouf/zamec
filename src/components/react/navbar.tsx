@@ -105,7 +105,12 @@ const Navbar = ({ logo, menu = [], children, mobileExtras }: NavbarProps) => {
                 <SheetHeader className="sr-only">
                   <SheetTitle>{logo.title}</SheetTitle>
                 </SheetHeader>
-                <div className="mx-auto flex w-fit max-w-full flex-col items-start gap-8 p-4 pt-10">
+                {/* `min-h-full` + `justify-center` centers the menu vertically
+                    while still allowing the sheet to scroll from the top when
+                    the menu is taller than the viewport (auto margins would
+                    clip the first item in that case). `py-16` keeps the
+                    content clear of the close button. */}
+                <div className="mx-auto flex min-h-full w-fit max-w-full shrink-0 flex-col items-start justify-center gap-8 px-4 py-16">
                   {menu.length > 0 && (
                     <Accordion
                       type="single"
