@@ -49,6 +49,21 @@ const tileWidth = [
     : "sm:w-[calc((100%-2.25rem)/4)]",
 ].join(" ");
 
+/*
+ * A strip that fits its row is centered, because a left-aligned handful of
+ * small tiles leaves the peek gap hanging on one side only and reads as
+ * off-center. Centering is only safe while nothing overflows: a centered
+ * scroll container overflows at both ends and the first tile becomes
+ * unreachable, so each count is centered only at the widths that hold it —
+ * a phone row holds 3 tiles, a desktop row 4.
+ */
+const trackJustify =
+  images.length <= 3
+    ? "justify-center"
+    : images.length === DESKTOP_TILES
+      ? "sm:justify-center"
+      : "";
+
 const scrollPreviousLabel = uiText("galleryScrollPrevious", locale);
 const scrollNextLabel = uiText("galleryScrollNext", locale);
 
@@ -102,7 +117,7 @@ const imageClass =
 
   <ul
     data-gallery-track
-    class="m-0 flex list-none snap-x snap-proximity gap-3 overflow-x-auto p-0 pb-2 [scrollbar-width:thin]"
+    class={`m-0 flex list-none snap-x snap-proximity gap-3 overflow-x-auto p-0 pb-2 [scrollbar-width:thin] ${trackJustify}`}
   >
     {
       images.map((image) => (
