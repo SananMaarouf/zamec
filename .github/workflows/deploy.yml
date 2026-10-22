@@ -10,12 +10,16 @@ on:
       - '.vscode/**'
       - '.gitignore'
       - 'LICENSE'
+  # Fired by the Sanity webhook after a publish, so prerendered pages pick up
+  # new content. The webhook body must be {"event_type": "sanity-publish"}.
   repository_dispatch:
-    types: [sanity-update]
+    types: [sanity-publish]
 
-# Prevent overlapping builds on same ref; cancel older in-progress runs
+# Prevent overlapping builds on same ref; cancel older in-progress runs.
+# Code pushes and content rebuilds (webhook or manual run) get separate groups
+# so one cannot cancel an in-flight run of the other.
 concurrency:
-  group: deploy-${{ github.ref }}-${{ (github.event_name == 'repository_dispatch' && github.event.action == 'sanity-update') && 'content' || 'code' }}
+  group: deploy-${{ github.ref }}-${{ github.event_name == 'push' && 'code' || 'content' }}
   cancel-in-progress: true
 
 # Least-privilege: build job only needs to read the repo
@@ -34,8 +38,10 @@ jobs:
       PUBLIC_SANITY_DATASET: ${{ secrets.PUBLIC_SANITY_DATASET }}
       PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
       FORMSPREE_URL: ${{ secrets.FORMSPREE_URL }}
-      # Unique token only for content update events; empty for normal code pushes (preserves build cache)
-      CONTENT_UPDATE_TOKEN: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'sanity-update' && github.run_id || '' }}
+      # Content rebuilds (Sanity webhook or manual run) have no code change, so
+      # without this the cached `astro build` layer would be replayed with stale
+      # pages. Unique per run there; empty on code pushes so the cache still applies.
+      CONTENT_UPDATE_TOKEN: ${{ github.event_name != 'push' && github.run_id || '' }}
 
     steps:
       - name: Checkout repository
