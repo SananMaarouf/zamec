@@ -6,7 +6,7 @@ import { uiText } from "@/lib/ui-strings";
  * Image strip for a post's gallery.
  *
  * One sideways scrolling strip at every width, kept small next to the post's
- * cover image: two short (4:3) tiles at a time on a phone, three square ones
+ * cover image: three short (4:3) tiles at a time on a phone, four square ones
  * on a desktop row. The tiles are sized so the next one always peeks in at the
  * right edge — the cue that there is more to scroll — and a pair of arrow
  * controls appears above the strip when a post has more images than one
@@ -24,7 +24,7 @@ interface Props {
 const { images, locale } = Astro.props;
 
 /** Tiles across on a desktop row. */
-const DESKTOP_TILES = 3;
+const DESKTOP_TILES = 4;
 
 /** Arrow controls, for posts with more images than one desktop row shows. */
 const scrollable = images.length > DESKTOP_TILES;
@@ -35,23 +35,18 @@ const scrollable = images.length > DESKTOP_TILES;
  * gaps and the peek exactly fill the row and the next tile is cut off by the
  * peek. The numbers are spelled out rather than computed because Tailwind only
  * emits a class it can read as literal text in the source:
- *   phone   → 2 tiles + 2 × 0.75rem gap + 2.5rem peek (≈147px on a 390px
- *             screen, cropped to 4:3 so the strip stays short). With only two
- *             images there is no third one to peek, so they fill the row
- *             instead, and a lone image just fills it on its own
- *   desktop → 3 tiles + 3 × 0.75rem gap + 2.5rem peek when there is a fourth,
- *             otherwise 3 tiles + the 2 gaps between them
+ *   phone   → 3 tiles + 2 × 0.75rem gap + 2.5rem peek (≈98px on a 390px
+ *             screen, cropped to 4:3 so the strip stays short)
+ *   desktop → 4 tiles + 3 × 0.75rem gap + 2.5rem peek when there is a fifth,
+ *             otherwise 4 tiles + the 3 gaps between them
+ * Every tile keeps the same size whatever the image count, so a strip of two
+ * or three reads as small previews instead of stretching to fill the row.
  */
-const mobileWidth =
-  images.length === 1
-    ? "w-full"
-    : images.length === 2
-      ? "w-[calc((100%-0.75rem)/2)]" // both tiles + the gap between them
-      : "w-[calc((100%-4rem)/2)]"; // 2 × 0.75rem gap + 2.5rem peek
-
 const tileWidth = [
-  mobileWidth,
-  scrollable ? "sm:w-[calc((100%-4.75rem)/3)]" : "sm:w-[calc((100%-1.5rem)/3)]",
+  "w-[calc((100%-4rem)/3)]", // 2 × 0.75rem gap + 2.5rem peek
+  scrollable
+    ? "sm:w-[calc((100%-4.75rem)/4)]"
+    : "sm:w-[calc((100%-2.25rem)/4)]",
 ].join(" ");
 
 const scrollPreviousLabel = uiText("galleryScrollPrevious", locale);
