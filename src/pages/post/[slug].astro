@@ -31,7 +31,7 @@ if (!post) throw new Error(`Post not found: ${slug}`);
   image={post.mainImage ?? post.images?.[0]}
   path={`/post/${slug}`}
   type="article"
-  publishedAt={post.publishedAt}
+  publishedAt={post._createdAt}
 >
   <PostPage post={post} locale={locale} />
 </Layout>

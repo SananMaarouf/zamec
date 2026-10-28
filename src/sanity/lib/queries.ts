@@ -9,9 +9,10 @@ import { defineQuery } from "groq";
 // has gallery images (no cover) still gets a thumbnail: the components fall
 // back to `images[0]`.
 //
-// Listings are ordered `publishedAt desc, _id asc`. The second key only breaks
-// ties between posts published at the same moment, but it must stay identical
-// in every listing: the post page's "next post" lookup walks that same order.
+// Listings are ordered `producedAt desc, _id asc` — newest work first, which is
+// how the artist reads her own shelf. The second key only breaks ties between
+// works made in the same year, but it must stay identical in every listing: the
+// post page's "next post" lookup walks that same order.
 
 export const POST_SLUGS_QUERY = defineQuery(`
   *[_type == "post" && count(title[language == $locale && value != null]) > 0]{
@@ -23,10 +24,18 @@ export const POST_BY_SLUG_QUERY = defineQuery(`
   *[_type == "post" && slug.current == $slug][0]{
     "title":       coalesce(title[language == $locale][0].value, title[0].value),
     "body":        coalesce(body[language == $locale][0].value,  body[0].value),
+    // Short line under the images: materials, year, exhibition. Size is
+    // language-neutral, so it is read as-is.
+    "details":     coalesce(details[language == $locale][0].value, details[0].value),
+    size,
     // Optional hand-written description; the page falls back to the opening of
     // the body text when this is empty.
     "seoDescription": coalesce(seoDescription[language == $locale][0].value, seoDescription[0].value),
-    publishedAt,
+    producedAt,
+    displayedAt,
+    // The document's own creation time, used only for the article metadata's
+    // published_time; it is not shown anywhere on the page.
+    "_createdAt": _createdAt,
     mainImage{ asset, alt },
     images[]{ asset, alt },
     "categories": categories[]->{
@@ -34,30 +43,29 @@ export const POST_BY_SLUG_QUERY = defineQuery(`
       "slug":  slug.current
     },
     // Neighbours in the listing order used by the index and the category
-    // pages (publishedAt desc, _id asc), so walking the links walks the site's
+    // pages (producedAt desc, _id asc), so walking the links walks the site's
     // own sequence: "previous" is the entry before this post (newer), "next"
-    // the one after it (older). The _id comparisons break ties for posts that
-    // share one timestamp — without them whole groups of same-day posts would
-    // have no neighbours at all.
+    // the one after it (older). The _id comparisons break ties for works made
+    // in the same year — without them whole groups would have no neighbours.
     "previousPost": *[
       _type == "post"
       && count(title[language == $locale && value != null]) > 0
-      && defined(publishedAt)
-      && defined(^.publishedAt)
-      && (publishedAt > ^.publishedAt
-          || (publishedAt == ^.publishedAt && _id < ^._id))
-    ] | order(publishedAt asc, _id desc)[0]{
+      && defined(producedAt)
+      && defined(^.producedAt)
+      && (producedAt > ^.producedAt
+          || (producedAt == ^.producedAt && _id < ^._id))
+    ] | order(producedAt asc, _id desc)[0]{
       "title": coalesce(title[language == $locale][0].value, title[0].value),
       "slug":  slug.current
     },
     "nextPost": *[
       _type == "post"
       && count(title[language == $locale && value != null]) > 0
-      && defined(publishedAt)
-      && defined(^.publishedAt)
-      && (publishedAt < ^.publishedAt
-          || (publishedAt == ^.publishedAt && _id > ^._id))
-    ] | order(publishedAt desc, _id asc)[0]{
+      && defined(producedAt)
+      && defined(^.producedAt)
+      && (producedAt < ^.producedAt
+          || (producedAt == ^.producedAt && _id > ^._id))
+    ] | order(producedAt desc, _id asc)[0]{
       "title": coalesce(title[language == $locale][0].value, title[0].value),
       "slug":  slug.current
     }
@@ -66,10 +74,10 @@ export const POST_BY_SLUG_QUERY = defineQuery(`
 
 export const POSTS_INDEX_QUERY = defineQuery(`
   *[_type == "post" && count(title[language == $locale && value != null]) > 0]
-    | order(publishedAt desc, _id asc){
+    | order(producedAt desc, _id asc){
     "title":     coalesce(title[language == $locale][0].value, title[0].value),
     "slug":      slug.current,
-    publishedAt,
+    producedAt,
     mainImage{ asset, alt },
     images[]{ asset, alt }
   }
@@ -90,10 +98,10 @@ export const CATEGORY_BY_SLUG_QUERY = defineQuery(`
     "slug":        slug.current,
     "posts": *[_type == "post" && references(^._id)
       && count(title[language == $locale && value != null]) > 0]
-      | order(publishedAt desc, _id asc){
+      | order(producedAt desc, _id asc){
       "title":     coalesce(title[language == $locale][0].value, title[0].value),
       "slug":      slug.current,
-      publishedAt,
+      producedAt,
       mainImage{ asset, alt },
       images[]{ asset, alt }
     }

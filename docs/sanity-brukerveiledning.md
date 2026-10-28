@@ -113,9 +113,12 @@ Prosjekt som vises i galleriet på forsiden.
 | SEO description | Teksten som vises under tittelen i Google og når lenken deles. 120–160 tegn. Tomt = starten av brødteksten brukes |
 | Cover image | Forsidebilde i galleriet og øverst i innlegget. Tomt = første bilde i galleriet brukes |
 | Gallery images | Alle bildene i innlegget. Dra for å endre rekkefølge. Klikk på et bilde for å se det større |
+| Details | Den korte teksten rett under bildene: **materialene**. Ca. 150 tegn, maks 250. Linjeskift beholdes. Årene skrives ikke her – de har egne felt (Produced at og Displayed at) |
+| Size | Målene på verket, f.eks. `97 × 233 × 86 cm`. Vises på linjen under detaljene. Samme på begge språk |
 | Categories | Én eller flere kategorier |
-| Published At | Dato og klokkeslett. Nyeste vises først |
-| Body | Brødtekst med formatering, per språk |
+| Produced at | Produksjonsåret, skrevet med fire siffer (f.eks. `2024`). Vises til høyre på detaljlinjen under bildene, og nyeste verk listes først |
+| Displayed at | Utstillingsåret, hvis verket har vært stilt ut. La feltet stå tomt hvis det ikke har det. Vises under produksjonsåret som «Utstilt 2025» |
+| Body | Brødteksten under Details-linjen: den utdypende teksten om prosjektet, opptil ca. 500 tegn, med formatering, per språk |
 
 ## Kategori (Category)
 
@@ -194,6 +197,9 @@ Feltene som styrer hvordan nettstedet ser ut i Google og når en lenke deles:
   tilgjengelighet og søkemotorer. Skriv hva bildet viser, ikke «bilde av».
   Studio advarer når alt-teksten mangler på innleggsbilder.
 - Last opp bilder i god oppløsning (minst 1600 px bredde). Bruk JPG eller PNG.
+- Bildene på forsiden vises i originalformatet – de beskjæres ikke, så stående,
+  liggende og kvadratiske bilder står side om side som de er. Hotspot gjelder
+  der bildet faktisk beskjæres: miniatyrraden i innlegget.
 
 ## Vanlige oppgaver
 

@@ -5,14 +5,15 @@ import { urlForImage } from "@/sanity/lib/url-for-image";
 interface Props {
   title: string;
   slug: string;
-  publishedAt?: string;
+  /** Production year of the work, shown under the title. */
+  producedAt?: number;
   mainImage?: { asset?: any; alt?: string };
   /** Gallery images; the first one is used when there is no cover image. */
   images?: Array<{ asset?: any; alt?: string }>;
   locale: Locale;
 }
 
-const { title, slug, publishedAt, mainImage, images, locale } = Astro.props;
+const { title, slug, producedAt, mainImage, images, locale } = Astro.props;
 
 const href = localizedPath(locale, `/post/${slug}`);
 const image = mainImage?.asset ? mainImage : images?.[0];
@@ -20,13 +21,9 @@ const imgUrl = image?.asset
   ? urlForImage(image.asset).width(640).height(360).fit("crop").url()
   : null;
 
-const dateLabel = publishedAt
-  ? new Date(publishedAt).toLocaleDateString(locale, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
-  : null;
+// A work is dated by its production year, so that is all the card shows — a
+// full date here would read as a blog timestamp.
+const yearLabel = producedAt ?? null;
 ---
 <a
   href={href}
@@ -46,8 +43,6 @@ const dateLabel = publishedAt
     <h3 class="font-semibold text-lg leading-snug transition-colors group-hover:text-primary">
       {title}
     </h3>
-    {dateLabel && (
-      <p class="mt-2 text-sm text-muted-foreground">{dateLabel}</p>
-    )}
+    {yearLabel && <p class="mt-2 text-sm text-muted-foreground">{yearLabel}</p>}
   </div>
 </a>

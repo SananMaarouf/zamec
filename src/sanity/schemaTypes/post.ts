@@ -98,17 +98,73 @@ export const postType = defineType({
       ],
     }),
     defineField({
+      name: "details",
+      title: "Details",
+      type: "internationalizedArrayText",
+      description:
+        'The short text that sits directly under the images: the materials. Around 150 characters, 250 at most. The years have their own fields below (Produced at and Displayed at), so they are not written here. Line breaks are kept, so a longer list of materials can run over two lines:\n\n"glazed stoneware and wood,\nhoggstabb"',
+      validation: (rule) =>
+        rule
+          .custom((items: any) =>
+            Array.isArray(items) &&
+            items.some((item) => (item?.value?.length ?? 0) > 250)
+              ? "One of these is longer than 250 characters — this line is meant to be read at a glance under the images."
+              : true
+          )
+          .warning(),
+    }),
+    defineField({
+      name: "size",
+      title: "Size",
+      type: "string",
+      description:
+        'Physical size of the work, for example "97 × 233 × 86 cm". Shown on the line under the details, the same in both languages.',
+      validation: (rule) =>
+        rule
+          .custom((value: any) =>
+            typeof value === "string" && value.length > 40
+              ? "That is long for a size line — it sits under the details in small type."
+              : true
+          )
+          .warning(),
+    }),
+    defineField({
       name: "categories",
       type: "array",
       of: [{ type: "reference", to: { type: "category" } }],
     }),
     defineField({
-      name: "publishedAt",
-      type: "datetime",
+      name: "producedAt",
+      title: "Produced at",
+      type: "number",
+      description:
+        "The year the work was made, written as four digits (2024) — the production year only. Shown at the right edge of the details line under the images, and the newest works are listed first.",
+      validation: (rule) =>
+        rule
+          .integer()
+          .min(1900)
+          .max(2100)
+          .warning("That does not look like four-digit year."),
+    }),
+    defineField({
+      name: "displayedAt",
+      title: "Displayed at",
+      type: "number",
+      description:
+        "The year the work was shown in an exhibition, if it has been. Leave it empty when the work has not been exhibited. Shown under the production year; also here only the year is displayed.",
+      validation: (rule) =>
+        rule
+          .integer()
+          .min(1900)
+          .max(2100)
+          .warning("That does not look like four-digit year."),
     }),
     defineField({
       name: "body",
+      title: "Body",
       type: "internationalizedArrayBlockContent",
+      description:
+        "The longer text under the Details line: what the work is about, in your own words — around 500 characters.",
     }),
   ],
 

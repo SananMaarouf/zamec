@@ -15,8 +15,9 @@ interface Props {
 const { posts = [], locale } = Astro.props;
 
 // ── Image loading strategy ────────────────────────────────────────────────
-// The tiles are clickable 1:1 thumbnails of full photos, so the index is only
-// as fast as the bytes it fetches. Three things keep that cheap:
+// The tiles are clickable thumbnails of full photos shown in their own
+// proportions — never cropped to a square — so the index is only as fast as
+// the bytes it fetches. Three things keep that cheap:
 //
 //   1. `srcset`/`sizes` — a tile is ~410 CSS px at its widest (three columns
 //      inside the 1264px container), so a 1x desktop screen gets the 600px
@@ -31,17 +32,20 @@ const { posts = [], locale } = Astro.props;
 //      instead of an empty box.
 const WIDTHS = [400, 600, 800, 1200];
 
-// Every asset ref carries its pixel size (`…-828x621-webp`). A square tile is
-// cut out of the largest square the source can give (`min(width, height)`), so
-// asking Sanity for a wider render than that just upscales: the CDN happily
-// returns w=800 for a 621px photo, which is exactly how a soft tile happens on
-// a 2x screen. Cap the candidates at what the file actually has.
-const squareSize = (asset: any): number => {
+// Every asset ref carries its pixel size (`…-828x621-webp`). It is needed for
+// two things: never advertise a render wider than the file itself (the CDN
+// happily upscales, which is exactly how a soft tile happens on a 2x screen),
+// and hand the browser real intrinsic width/height so a tile reserves its
+// height — photo proportions differ, so the layout would otherwise jump as
+// each image lands.
+const nativeSize = (asset: any): { width: number; height: number } | null => {
   const match = /-(\d+)x(\d+)-[a-z0-9]+$/i.exec(asset?._ref ?? "");
-  return match ? Math.min(Number(match[1]), Number(match[2])) : Infinity;
+  return match
+    ? { width: Number(match[1]), height: Number(match[2]) }
+    : null;
 };
 
-// Mirrors the grid classes below: 1 column, 2 from `sm`, 3 from `lg`.
+// Mirrors the column classes below: 1 column, 2 from `sm`, 3 from `lg`.
 // 3.5rem = 2rem container padding + 2 × 0.75rem gaps; 2.75rem = padding + 1 gap.
 const SIZES = [
   "(min-width: 1280px) calc((80rem - 3.5rem) / 3)",
@@ -60,14 +64,14 @@ async function lqipDataUri(asset: any): Promise<string | null> {
   if (lqipCache.has(ref)) return lqipCache.get(ref)!;
   let uri: string | null = null;
   try {
-    // 32px square + Sanity's own blur, so the placeholder reads as the photo's
-    // colours rather than a pixelated thumbnail. Pinned to webp (~114 bytes
+    // 32px wide + Sanity's own blur, so the placeholder reads as the photo's
+    // colours rather than a pixelated thumbnail; it is stretched over the whole
+    // tile, so its own proportions do not matter. Pinned to webp (~114 bytes
     // each): `auto=format` lets the CDN pick avif, whose container overhead
     // almost triples the payload at this size.
     const url = urlForImage(asset)
       .width(32)
-      .height(32)
-      .fit("crop")
+      .fit("max")
       .blur(30)
       .quality(40)
       .format("webp")
@@ -84,9 +88,10 @@ async function lqipDataUri(asset: any): Promise<string | null> {
   return uri;
 }
 
-// Image-only gallery: one square thumbnail per post, linking to the post.
-// The post's cover image is used, falling back to its first gallery image so
-// posts that only use the gallery still show up.
+// Image-only gallery: one thumbnail per post, shown in the photo's own
+// proportions, linking to the post. The post's cover image is used, falling
+// back to its first gallery image so posts that only use the gallery still
+// show up.
 const items = (
   await Promise.all(
     posts.map(async (post) => {
@@ -95,21 +100,24 @@ const items = (
       const url = (w: number) =>
         urlForImage(image.asset)
           .width(w)
-          .height(w)
-          .fit("crop")
+          .fit("max")
           .auto("format")
           .url();
       // Never advertise a candidate the source cannot fill. A tile is ~400 CSS
       // px wide, so on a 2x screen the browser wants ~800 — correct for a big
       // upload, a blurry upscale for a small one.
-      const native = squareSize(image.asset);
-      const widths = WIDTHS.filter((w) => w <= native);
-      if (!widths.length) widths.push(Math.round(native));
+      const native = nativeSize(image.asset);
+      const widths = WIDTHS.filter((w) => w <= (native?.width ?? Infinity));
+      if (!widths.length) widths.push(Math.round(native?.width ?? 800));
       const largest = widths[widths.length - 1];
       return {
         href: localizedPath(locale, `/post/${post.slug}`),
         title: post.title ?? "",
         alt: image.alt ?? post.title ?? "",
+        // Intrinsic size for the <img> attributes. Without a readable ref the
+        // browser falls back to the image's own proportions once it lands.
+        width: native?.width,
+        height: native?.height,
         src: url(largest),
         small: url(widths.find((w) => w >= 600) ?? largest),
         srcset: widths.map((w) => `${url(w)} ${w}w`).join(", "),
@@ -121,6 +129,8 @@ const items = (
   href: string;
   title: string;
   alt: string;
+  width?: number;
+  height?: number;
   src: string;
   small: string;
   srcset: string;
@@ -189,16 +199,20 @@ const items = (
 </style>
 
 {
+  // Multi-column flow rather than a grid: every tile keeps the photo's own
+  // proportions, so a row of tall and wide pictures has no shared height to
+  // align to. Columns pack them top-down without cutting anything and without
+  // leaving gaps under the shorter ones.
   items.length ? (
     <div
       data-post-grid
-      class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+      class="columns-1 gap-3 sm:columns-2 lg:columns-3"
     >
       {items.map((item, index) => (
         <a
           href={item.href}
           data-post-card
-          class="group relative block overflow-hidden rounded-lg border border-border bg-card bg-cover bg-center shadow-sm transition-[scale,translate,box-shadow] duration-200 data-[active=true]:z-10 data-[active=true]:-translate-y-1 data-[active=true]:scale-[1.04] data-[active=true]:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          class="group relative mb-3 block break-inside-avoid overflow-hidden rounded-lg border border-border bg-card bg-cover bg-center shadow-sm transition-[scale,translate,box-shadow] duration-200 data-[active=true]:z-10 data-[active=true]:-translate-y-1 data-[active=true]:scale-[1.04] data-[active=true]:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           style={item.lqip ? `background-image:url("${item.lqip}")` : undefined}
         >
           <img
@@ -206,23 +220,23 @@ const items = (
             data-src={item.src}
             data-srcset={item.srcset}
             sizes={SIZES}
-            width="800"
-            height="800"
+            width={item.width}
+            height={item.height}
             alt={item.alt}
             loading={index === 0 ? "eager" : "lazy"}
             fetchpriority={index === 0 ? "high" : undefined}
             decoding="async"
-            class="aspect-square w-full object-cover"
+            class="block h-auto w-full"
           />
           <noscript>
             <img
               src={item.small}
               alt={item.alt}
-              width="800"
-              height="800"
+              width={item.width}
+              height={item.height}
               loading="lazy"
               decoding="async"
-              class="absolute inset-0 aspect-square w-full object-cover"
+              class="absolute inset-0 size-full object-cover"
             />
           </noscript>
           <span
@@ -385,8 +399,8 @@ const items = (
           // Linear on purpose: a uniform amount of movement per frame, no
           // acceleration at either end.
           ease: "none",
-          // Rows, not tiles: everything in one row shares a start, and the next
-          // row follows a beat later.
+          // A beat between tiles, so a batch arrives as a small cascade rather
+          // than as one block.
           delay,
           overwrite: "auto",
           // GSAP parks `translate/scale` as inline `none` on every tile it has
@@ -409,14 +423,11 @@ const items = (
           overwrite: "auto",
         });
 
-      // Seconds between one row and the next. Tiles within a row start together.
-      const ROW_DELAY = 0.12;
-      const columns = () => {
-        const tracks = getComputedStyle(grid)
-          .gridTemplateColumns.split(" ")
-          .filter(Boolean).length;
-        return Math.max(1, tracks);
-      };
+      // Seconds between one tile and the next in a batch, and the number of
+      // steps the cascade is allowed to take — past that the last tile of a
+      // long batch would still be waiting while the user scrolls past it.
+      const STEP_DELAY = 0.12;
+      const MAX_STEPS = 3;
 
       // One observer driving one tween each way: entering plays in, leaving
       // plays out, so scrolling up and down animates the tiles in both
@@ -425,25 +436,16 @@ const items = (
       const entered = new WeakSet<HTMLElement>();
       const observer = new IntersectionObserver(
         (entries) => {
-          const cols = columns();
-          // The batch is grouped by grid row first: which row a tile belongs to
-          // depends on the breakpoint, so it is read from the live grid rather
-          // than assumed. A row entering on its own is a group of one, so it
-          // starts immediately; a batch covering several rows cascades down them.
+          // The browser decides where each column breaks, so there is no row
+          // to group a batch by: tiles cascade in arrival order instead.
           const arriving = entries
             .filter((entry) => entry.isIntersecting)
-            .map((entry) => {
-              const card = entry.target as HTMLElement;
-              return { card, row: Math.floor(cards.indexOf(card) / cols) };
-            });
-          const rows = [...new Set(arriving.map((a) => a.row))].sort(
-            (a, b) => a - b
-          );
+            .map((entry) => entry.target as HTMLElement);
 
-          for (const { card, row } of arriving) {
+          arriving.forEach((card, index) => {
             entered.add(card);
-            enter(card, rows.indexOf(row) * ROW_DELAY);
-          }
+            enter(card, Math.min(index, MAX_STEPS) * STEP_DELAY);
+          });
 
           for (const entry of entries) {
             const card = entry.target as HTMLElement;

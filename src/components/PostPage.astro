@@ -12,13 +12,20 @@ interface Props {
 
 const { post, locale } = Astro.props;
 
-const dateLabel = post?.publishedAt
-  ? new Date(post.publishedAt).toLocaleDateString(locale, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
-  : null;
+// Two years, both already stored as plain four-digit numbers (see the post
+// schema): the year the work was made, and — only when it has been shown — the
+// year it was exhibited. Nothing else about a date is meaningful on a work.
+const producedYear: number | null = post?.producedAt ?? null;
+const displayedYear: number | null = post?.displayedAt ?? null;
+
+// Under the images: the details on the left, the years pushed to the right
+// edge, the physical size on the line below. Any of them can be empty.
+// A trailing comma an editor left on the details line is dropped so it does not
+// dangle at the end of the line.
+const detailsText = (post?.details ?? "").trim().replace(/[,;]\s*$/, "");
+const hasMeta = Boolean(
+  detailsText || producedYear || displayedYear || post?.size
+);
 
 // Cover image if set, otherwise the first gallery image. The cover is dropped
 // from the grid below so the same picture never appears twice.
@@ -65,6 +72,9 @@ const indexHref = localizedPath(locale, "/");
 const previousLabel = uiText("previousPost", locale);
 const nextLabel = uiText("nextPost", locale);
 const allPostsLabel = uiText("allPosts", locale);
+const producedLabel = uiText("producedYear", locale);
+const exhibitedLabel = uiText("exhibitedYear", locale);
+const sizeLabel = uiText("size", locale);
 ---
 
 <article
@@ -97,6 +107,42 @@ const allPostsLabel = uiText("allPosts", locale);
     )
   }
 
+  {/* The work's own data, gathered right under the images. It is body copy, so
+      it is left inside the prose wrapper rather than boxed off. Two columns,
+      two rows, each cell placed explicitly so a missing value never pulls the
+      next one up into its slot:
+        details   | produced year
+        size      | displayed year
+      The right column is right-aligned, which puts the years on the content
+      edge. Line breaks in the details are the editor's own, so they are
+      preserved rather than collapsed. Prose's paragraph margins are cancelled
+      on the direct children — a plain `m-0` class loses to the prose rule, the
+      child selector does not — because the grid gap sets the spacing here. */}
+  {
+    hasMeta && (
+      <div class="mb-8 grid grid-cols-2 gap-x-4 gap-y-2 [&>p]:m-0">
+        {detailsText && (
+          <p class="col-start-1 row-start-1 whitespace-pre-line">{detailsText}</p>
+        )}
+        {producedYear && (
+          <p class="col-start-2 row-start-1 text-right tabular-nums">
+            {producedLabel} {producedYear}
+          </p>
+        )}
+        {post.size && (
+          <p class="col-start-1 row-start-2">
+            {sizeLabel} {post.size}
+          </p>
+        )}
+        {displayedYear && (
+          <p class="col-start-2 row-start-2 text-right tabular-nums">
+            {exhibitedLabel} {displayedYear}
+          </p>
+        )}
+      </div>
+    )
+  }
+
   {post.body && <PortableText value={post.body} />}
 
   {
@@ -116,14 +162,13 @@ const allPostsLabel = uiText("allPosts", locale);
     )
   }
 
-  {/* Bottom of the post: publish date, then the links onwards. Every post
-      shows its previous post (the newer one) and its next post (the older
-      one); the first post of the list has no previous post, so that slot links
-      back to the index instead. */}
+  {/* Bottom of the post: the links onwards. Every post shows its previous post
+      (the newer one) and its next post (the older one); the first post of the
+      list has no previous post, so that slot links back to the index instead.
+      The publish date lives in the meta block under the images, so it is not
+      repeated here. */}
   <footer class="not-prose mt-12 border-t border-border pt-5">
-    {dateLabel && <p class="text-sm text-muted-foreground">{dateLabel}</p>}
-
-    <nav class="mt-5 flex flex-wrap gap-3" aria-label={uiText("postNavigation", locale)}>
+    <nav class="flex flex-wrap gap-3" aria-label={uiText("postNavigation", locale)}>
       {
         previousHref ? (
           <a

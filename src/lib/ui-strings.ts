@@ -16,6 +16,19 @@ const UI_STRINGS = {
   allPosts: { en: "All posts", nb: "Alle innlegg" },
   /** Accessible name of the previous/next link row at the bottom of a post. */
   postNavigation: { en: "Post navigation", nb: "Innleggsnavigasjon" },
+  /**
+   * Label in front of the year a work was made ("Produced: 2024"), matching the
+   * studio field it comes from, so it reads as the pair to `exhibitedYear`.
+   * The colon belongs to the label, so the markup never has to add punctuation.
+   */
+  producedYear: { en: "Produced:", nb: "Produsert:" },
+  /**
+   * Label in front of the exhibition year ("Exhibited: 2025" / "Utstilt: 2025"),
+   * so the two years are told apart.
+   */
+  exhibitedYear: { en: "Exhibited:", nb: "Utstilt:" },
+  /** Label in front of a work's physical size ("Size: 97 × 233 × 86 cm"). */
+  size: { en: "Size:", nb: "Mål:" },
   /** Accessible name of the button that scrolls the post's image strip back. */
   galleryScrollPrevious: { en: "Previous images", nb: "Forrige bilder" },
   /** Accessible name of the button that scrolls the post's image strip on. */
