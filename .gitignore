@@ -1,6 +1,10 @@
 # build output
 dist/
 
+# cloudflare workers
+.wrangler/
+.dev.vars
+
 # generated types
 .astro/
 schema.json

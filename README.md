@@ -112,8 +112,8 @@ FORMSPREE_URL="https://formspree.io/f/your-form-id"
 
 `FORMSPREE_URL` is the Formspree endpoint the contact page posts to. It is read
 at build time and baked into the static HTML (a Formspree form id is public by
-design), so it also has to be set as a build arg / secret in the Docker build —
-see [Deployment](#deployment-cicd--dokploy). Without it the form still renders,
+design), so it also has to be set as a Workers Builds build variable — see
+[Deployment](#deployment-cloudflare-workers). Without it the form still renders,
 but submitting shows the "not configured" message.
 
 ### 5) Keep Astro and Studio targeting the same Sanity project
@@ -391,7 +391,7 @@ Other notes:
 | SEO head (title, description, canonical, OG, JSON-LD) | `src/components/SEO.astro`, helpers in `src/lib/seo.ts` |
 | Sitemap + robots | `astro.config.mjs` (`@astrojs/sitemap`), `src/pages/robots.txt.ts` |
 | Update routes/pages | `src/pages/*` |
-| 404 copy / markup | `src/components/NotFound.astro`; routes in `src/pages/404.astro` + `src/pages/[locale]/404.astro`; served by `nginx.conf` `error_page` |
+| 404 copy / markup | `src/components/NotFound.astro`; routes in `src/pages/404.astro` (→ `dist/404.html`) + `src/pages/nb/404.astro` (→ `dist/nb/404.html`); served by Cloudflare's `assets.not_found_handling: "404-page"`, which uses the nearest `404.html` |
 | Contact page copy + form | Copy lives on the `contactPage` singleton (Studio: **Contact Page**); schema in `src/sanity/schemaTypes/contactPage.ts`; built-in fallbacks in `src/lib/ui-strings.ts` (`contact*`); form chrome/CMS overrides in `src/components/react/contact-form.tsx` + `src/lib/contact.ts`; routes in `src/pages/contact.astro` + `src/pages/[locale]/contact.astro` |
 | Contact details column (phone, Instagram, …) | `contactDetails` on the same singleton; static markup in `src/components/react/contact-details.tsx`, brand marks in `brand-icons.tsx`; column layout in `ContactPage.astro` |
 | Contact link in the menu | Navigation singleton: `showContact` + `contactLabel`, applied in `src/layouts/Layout.astro` |
@@ -403,62 +403,75 @@ Other notes:
 | `npm run dev` | Run Astro dev server at http://localhost:4321 |
 | `npm run build` | Build static production output to `dist/` |
 | `npm run preview` | Preview production build locally |
+| `npm run cf:preview` | Build, then serve `dist/` through the real Workers runtime (`wrangler dev`, :8787) |
+| `npm run cf:dry-run` | `wrangler deploy --dry-run` — shows the asset count without deploying |
+| `npm run cf:deploy` | Build and deploy to Cloudflare (run deliberately) |
 | `npm run sanity:dev` | Run Sanity Studio directly |
 | `npm run sanity:codegen` | Extract schema and generate `src/sanity/sanity.types.ts` |
 | `npm run sanity:cors-add -- <origin> --credentials` | Allow frontend origin in Sanity CORS |
 | `npm run sanity:dataset-list` | Show datasets in current Sanity project |
 
-## Deployment (CI/CD → Dokploy)
+## Deployment (Cloudflare Workers)
 
-Deploys are automated. Nothing is built locally or uploaded by hand:
+Hosted as an **assets-only Worker**: `wrangler.jsonc` has no `main`, so `wrangler deploy`
+uploads `dist/` and the edge serves it. No container, no nginx, no Node at request time —
+and deliberately no `@astrojs/cloudflare` adapter, which exists for SSR.
 
 ```
 push to main ──┐
-Sanity webhook ─┴─▶ GitHub Actions (deploy.yml)
-                     ├─ docker build (Astro build runs inside the image)
-                     ├─ push <owner>/<image>:latest | :main | :<sha> to Docker Hub
-                     └─ POST Dokploy deploy hook (trigger-deploy.yml) → pull + restart
+Sanity webhook ─┴─▶ Cloudflare Workers Builds (git integration)
+                     ├─ npm run build            (queries Sanity, prerenders every page)
+                     └─ npx wrangler deploy      (uploads dist/ to the edge)
 ```
 
-- `.github/workflows/deploy.yml` — builds the image and pushes it. Triggers on pushes
-  to `main`, on manual `workflow_dispatch`, and on `repository_dispatch: sanity-update`
-  (content-only rebuilds reuse the Docker layer cache and only bust the `npm run build` step).
-- `.github/workflows/trigger-deploy.yml` — calls the Dokploy deploy hook behind Cloudflare
-  Access service auth. Reusable via `workflow_call` or runnable standalone.
-- `Dockerfile` — `node:24-alpine` builds `dist/`, `nginxinc/nginx-unprivileged:alpine`
-  serves it on port 8080 as non-root with the caching/security headers in `nginx.conf`.
-- `docker-compose.yml` — local reproduction: `docker compose up --build` → <http://localhost:8080>.
+- `wrangler.jsonc` — assets from `./dist`, `not_found_handling: "404-page"` (serves the
+  nearest `404.html`, so `/nb/*` keeps the Norwegian page), and the custom-domain `routes`
+  entry left commented so the first deploy answers only on `*.workers.dev`.
+- `public/_headers` — the caching and security headers that used to live in `nginx.conf`.
+  Astro copies `public/` into `dist/`, and Workers parses the file at deploy time without
+  ever serving it.
+- **No deploy workflow.** Workers Builds owns build + deploy; a GitHub Actions deploy on
+  the same branch would race it for the same Worker script.
 
 ### One-time setup
 
-1. **Docker Hub repo** for the image (e.g. `sananmaarouf/zamec`).
-2. **Dokploy application** using the `latest` image from that repo, exposed on port 8080.
-3. **GitHub repository secrets**:
+1. **Worker** — Workers & Pages → Create → connect `SananMaarouf/zamec`; production branch
+   `main`, root directory `/`, build command `npm run build`, deploy command
+   `npx wrangler deploy`.
+2. **Build variables** — Settings → Build. Every variable is build-time only:
 
-| Secret | Purpose |
+| Variable | Purpose |
 |---|---|
-| `DOCKERHUB_USERNAME` | Docker Hub account (also the image namespace) |
-| `DOCKERHUB_TOKEN` | Docker Hub access token, read/write |
-| `DOCKERHUB_IMAGE_NAME` | Image name, e.g. `zamec` |
 | `PUBLIC_SANITY_PROJECT_ID` | Baked into the build (public) |
 | `PUBLIC_SANITY_DATASET` | Baked into the build (public) |
-| `PUBLIC_SITE_URL` | Canonical origin, e.g. `https://zamec.no` |
-| `DOKPLOY_DEPLOY_HOOK_URL` | Application deploy hook |
-| `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` | Cloudflare Access service token for the hook |
+| `PUBLIC_SITE_URL` | Canonical origin, e.g. `https://www.sarazamecznik.com` — also drives the sitemap |
+| `FORMSPREE_URL` | Contact form endpoint (public by design) |
 
-4. **Sanity webhook** (Manage → API → Webhooks) posting to
-   `https://api.github.com/repos/SananMaarouf/zamec/dispatches` with
-   `{"event_type": "sanity-update"}` so publishing content triggers a rebuild.
-5. Add the production CORS origin, and deploy the Studio once:
+   These are **build** variables: the build fails fast with `Missing Sanity credentials`
+   if the first two are absent. Setting them under Settings → Variables & Secrets
+   (runtime), or as `vars` in `wrangler.jsonc`, does nothing — a prerendered site reads
+   nothing at request time.
+3. **Sanity webhook** (Manage → API → Webhooks) posting to the Worker's **deploy hook**
+   (Settings → Build → Deploy hooks). A static build only picks up content through a
+   rebuild, so the hook must re-run the build — the old `repository_dispatch` + GitHub PAT
+   plumbing is gone with the workflow.
+4. Add the production CORS origin, and deploy the Studio once:
    ```bash
    npm run sanity:cors-add -- https://your-site.example --credentials
    npm run sanity:deploy
    ```
    After this, edit content at the hosted Studio URL (`https://your-project.sanity.studio`).
+5. **Cutover** — uncomment `routes` in `wrangler.jsonc` (or add a Custom Domain in the
+   dashboard). That claims the DNS record and issues the certificate, which is the moment
+   traffic leaves the container; keep the Dokploy app stopped-but-not-deleted until the
+   new host has been verified for a while.
 
-Note: the image build runs `npm ci` **with** devDependencies — Astro, Tailwind and the
+Note: Workers Builds runs `npm ci` **with** devDependencies — Astro, Tailwind and the
 Sanity toolchain are build-time only for a static site, so never set `NODE_ENV=production`
-in the builder stage.
+in the build environment.
+
+The retired container stack (`Dockerfile`, `nginx.conf`, `docker-compose.yml`, both
+workflows) is preserved on the `self-host` branch as the rollback story.
 
 ## Troubleshooting
 
