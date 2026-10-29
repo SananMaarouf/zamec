@@ -1,0 +1,15 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import NotFound from "@/components/NotFound.astro";
+
+// This route is a literal `nb/` path rather than `[locale]/404.astro` on
+// purpose: Astro emits a `404.astro` as `404.html` next to it, so this builds
+// `dist/nb/404.html`, and Cloudflare's `assets.not_found_handling: "404-page"`
+// serves the *nearest* 404.html — meaning an unmatched /nb/... URL gets the
+// Norwegian page, exactly as nginx's `error_page 404 /nb/404` used to.
+// A dynamic `[locale]/404.astro` builds `nb/404/index.html`, which that lookup
+// does not find. Adding a locale means adding one file like this one.
+---
+<Layout locale="nb" title="404" noindex>
+  <NotFound locale="nb" />
+</Layout>

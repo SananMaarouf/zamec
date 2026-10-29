@@ -1,0 +1,52 @@
+# Workers static assets reads this file out of the deployed asset directory
+# (Astro copies public/ into dist/) and never serves it. It replaces the caching
+# and security headers the container used to get from nginx.conf.
+#
+# Verify with `curl -I` against `npm run cf:preview`.
+
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+  # No includeSubDomains: the zone carries other subdomains that are not ours to pin.
+  Strict-Transport-Security: max-age=31536000
+
+# Astro hashed build output — the content changes the filename, so cache hard.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Unhashed public files (favicon, images, fonts) — a week, so updates land.
+/*.ico
+  Cache-Control: public, max-age=604800
+/*.svg
+  Cache-Control: public, max-age=604800
+/*.png
+  Cache-Control: public, max-age=604800
+/*.jpg
+  Cache-Control: public, max-age=604800
+/*.jpeg
+  Cache-Control: public, max-age=604800
+/*.gif
+  Cache-Control: public, max-age=604800
+/*.webp
+  Cache-Control: public, max-age=604800
+/*.avif
+  Cache-Control: public, max-age=604800
+/*.woff
+  Cache-Control: public, max-age=604800
+/*.woff2
+  Cache-Control: public, max-age=604800
+/*.ttf
+  Cache-Control: public, max-age=604800
+/*.webmanifest
+  Cache-Control: public, max-age=604800
+/*.txt
+  Cache-Control: public, max-age=604800
+/*.xml
+  Cache-Control: public, max-age=604800
+
+# Pages are deliberately not listed: Workers static assets already serves HTML
+# with `cache-control: public, max-age=0, must-revalidate`, which is the same
+# intent as the old nginx `no-cache`. A `/*.html` rule would be a no-op — these
+# rules match the request path, and no page is requested with an .html suffix.

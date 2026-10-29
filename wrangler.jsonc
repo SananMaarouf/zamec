@@ -1,0 +1,29 @@
+{
+  // Assets-only Worker: `wrangler deploy` uploads ./dist and the edge serves it.
+  // No `main` — the Astro build is fully static, so there is no runtime.
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "zamec",
+  "compatibility_date": "2026-10-28",
+
+  "assets": {
+    "directory": "./dist",
+    // Serve the nearest 404.html (root for English, dist/nb/404.html for /nb/*)
+    // with a real 404 status — the equivalent of the old nginx `error_page`
+    // split. "single-page-application" would answer every unknown path with 200.
+    "not_found_handling": "404-page"
+    // html_handling stays at the default `auto-trailing-slash`: folder indexes
+    // are served at /foo/ and /foo 307s to it, which matches the canonicals the
+    // sitemap emits.
+  },
+
+  "observability": {
+    "enabled": true
+  }
+
+  // CUTOVER (not part of the first deploy): uncomment to claim the DNS record and
+  // issue the certificate, which is the moment production moves off Dokploy.
+  // Keep it commented so the first deploy only answers on
+  // zamec.<subdomain>.workers.dev. Keep it in step with PUBLIC_SITE_URL.
+  //
+  // "routes": [{ "pattern": "www.sarazamecznik.com", "custom_domain": true }]
+}

@@ -2,6 +2,8 @@
 //   1. astro.config.mjs `i18n.locales`
 //   2. sanity.config.ts internationalizedArray `languages`
 //   3. LOCALES below
+//   4. `src/pages/<locale>/404.astro` (a literal path — Cloudflare serves the
+//      nearest 404.html, so each non-default locale needs its own file)
 export const LOCALES = ["en", "nb"] as const;
 export const DEFAULT_LOCALE = "en" as const;
 
